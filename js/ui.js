@@ -1,5 +1,6 @@
 
 import { formatDate, showToast } from './utils.js';
+
 export const UI = {
   campaignCard: (c, {showRegion=true, showApply=false, applied=false}={}) => `
     <div class="card">
@@ -11,7 +12,8 @@ export const UI = {
         <span class="small">Budget: R ${Number(c.budget||0).toLocaleString()}</span>
         ${showApply ? `<button class="btn" data-apply="${c.id}" ${applied?'disabled':''}>${applied?'Applied':'Apply'}</button>` : ''}
       </div>
-    </div>`,
+    </div>
+  `,
   empty: (msg) => `<div class="empty">${msg}</div>`,
   toast: showToast,
 };

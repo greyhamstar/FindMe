@@ -1,65 +1,80 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>FindMe! — Sign Up</title><link rel="stylesheet" href="assets/style.css"/></head>
-<body><div class="container">
-  <div id="nav" class="nav"><div class="brand">FindMe<span style="color:#22c55e">!</span></div></div>
-  <div class="card">
-    <h1>Create your account</h1>
-    <div class="row">
-      <div class="col"><label>Role</label><select id="role"><option value="company">Company</option><option value="promoter">Promoter</option></select></div>
-      <div class="col"><label>Full name / Company name</label><input id="name" placeholder="e.g. Hloni / Digiworx"/></div>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FindMe! — Sign Up</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <div class="container">
+    <div id="nav"></div>
+    <div class="card">
+      <h1>Create your account</h1>
+      <div class="row">
+        <div class="col">
+          <label>Role</label>
+          <select id="role">
+            <option value="company">Company</option>
+            <option value="promoter">Promoter</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>Full name / Company name</label>
+          <input id="name" placeholder="e.g. Digiworx / Hloni" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <label>Email</label>
+          <input id="email" type="email" placeholder="you@example.com" />
+        </div>
+        <div class="col">
+          <label>Password</label>
+          <input id="password" type="password" placeholder="Choose a strong password" />
+        </div>
+      </div>
+      <div class="row" id="promoterExtras" style="display:none">
+        <div class="col">
+          <label>Region (Province)</label>
+          <select id="region"></select>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="signupBtn">Sign Up</button>
+        <div class="small">Already have an account? <a class="link" href="login.html">Login</a></div>
+      </div>
     </div>
-    <div class="row" id="promoterExtras" style="display:none">
-      <div class="col"><label>Surname</label><input id="surname" placeholder="e.g. Mokoena"/></div>
-      <div class="col"><label>South African ID Number</label><input id="idNumber" maxlength="13" placeholder="13 digits"/></div>
-    </div>
-    <div class="row" id="promoterExtras2" style="display:none">
-      <div class="col"><label>Region (Province)</label><select id="region"></select></div>
-      <div class="col"><label>Upload CV (PDF/Doc)</label><input id="cv" type="file" accept=".pdf,.doc,.docx"/></div>
-    </div>
-    <div class="row">
-      <div class="col"><label>Email</label><input id="email" type="email"/></div>
-      <div class="col"><label>Password</label><input id="password" type="password"/></div>
-    </div>
-    <div class="row" style="margin-top:12px; gap:8px">
-      <button class="btn" id="signupBtn">Sign Up</button>
-      <div class="small">Already have an account? <a class="link" href="login.html">Login</a></div>
-    </div>
+    <footer>FindMe! MVP • LocalStorage demo</footer>
   </div>
-  <footer class="small">FindMe! • Firebase Auth + Firestore + Storage</footer>
-</div>
-<script type="module">
-  import { REGIONS_SA, showToast, validSouthAfricaID } from './js/utils.js';
-  import { Auth } from './js/auth.js';
-  const role = document.querySelector('#role'); const regionSel = document.querySelector('#region');
-  const extras = document.querySelector('#promoterExtras'); const extras2 = document.querySelector('#promoterExtras2');
-  const surname = document.querySelector('#surname'); const idNumber = document.querySelector('#idNumber'); const cvInput = document.querySelector('#cv');
-  REGIONS_SA.forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; regionSel.appendChild(o); });
-  const toggleExtras = () => { const show = role.value === 'promoter'; extras.style.display = show ? '' : 'none'; extras2.style.display = show ? '' : 'none'; };
-  role.addEventListener('change', toggleExtras); toggleExtras();
-  signupBtn.addEventListener('click', async ()=>{
-    try {
-      const roleVal = role.value;
-      const payload = {
-        role: roleVal, name: name.value.trim(), surname: surname?.value?.trim(), idNumber: idNumber?.value?.trim(),
-        email: email.value.trim(), password: password.value, region: roleVal==='promoter' ? regionSel.value : null,
-        cvFile: (roleVal==='promoter' && cvInput.files?.length) ? cvInput.files[0] : null
-      };
-      if (!payload.email || !payload.password || !payload.name) { showToast('Name, email & password are required'); return; }
-      if (roleVal === 'promoter') {
-        if (!payload.surname || !payload.idNumber || !payload.region) { showToast('Please fill surname, ID & region'); return; }
-        if (!validSouthAfricaID(payload.idNumber)) { showToast('ID must be 13 digits'); return; }
-        if (payload.cvFile) {
-          const ok = ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-          if (!ok.includes(payload.cvFile.type)) { showToast('CV must be PDF or Word'); return; }
-          if (payload.cvFile.size > 10*1024*1024) { showToast('CV must be ≤ 10MB'); return; }
-        }
-      }
-      const user = await Auth.signUp(payload);
-      showToast('Account created');
-      const prof = await Auth.getProfile(user.uid);
-      if (prof?.role === 'promoter') location.href='promoter_profile.html';
-      else location.href='company_dashboard.html';
-    } catch(e){ showToast(e.message || 'Sign up failed'); }
-  });
-</script></body></html>
+
+  <script type="module">
+    import { REGIONS_SA } from './js/utils.js';
+    import { Auth, redirectByRole, ensureNav } from './js/auth.js';
+    import { showToast } from './js/utils.js';
+    ensureNav();
+    const role = document.querySelector('#role');
+    const regionSel = document.querySelector('#region');
+    const extras = document.querySelector('#promoterExtras');
+    REGIONS_SA.forEach(r => {
+      const o = document.createElement('option'); o.value = r; o.textContent = r; regionSel.appendChild(o);
+    });
+    const toggleExtras = () => { extras.style.display = role.value === 'promoter' ? '' : 'none'; };
+    role.addEventListener('change', toggleExtras); toggleExtras();
+
+    document.querySelector('#signupBtn').addEventListener('click', ()=>{
+      try {
+        const user = Auth.signUp({
+          role: role.value,
+          name: document.querySelector('#name').value,
+          email: document.querySelector('#email').value,
+          password: document.querySelector('#password').value,
+          region: role.value === 'promoter' ? regionSel.value : null
+        });
+        showToast('Account created');
+        setTimeout(()=> redirectByRole(user), 350);
+      } catch(e) { showToast(e.message || 'Sign up failed'); }
+    });
+  </script>
+</body>
+</html>

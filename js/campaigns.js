@@ -1,42 +1,28 @@
 
-import { db } from './firebase.js';
-import { collection, addDoc, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { db } from './storage.js';
+import { uid } from './utils.js';
 
 export const Campaigns = {
-  create: async ({companyId, title, region, date, budget, details}) => {
-    const c = { companyId, title, region, date, budget, details, status:'active', createdAt: new Date().toISOString() };
-    const ref = await addDoc(collection(db, 'campaigns'), c);
-    return { id: ref.id, ...c };
+  create: ({companyId, title, region, date, budget, details}) => {
+    const c = { id: uid(), companyId, title, region, date, budget, details, createdAt: new Date().toISOString(), status:'active' };
+    db.push('campaigns', c);
+    return c;
   },
-  forCompany: async (companyId) => {
-    const qy = query(collection(db, 'campaigns'), where('companyId','==',companyId), where('status','==','active'));
-    const snap = await getDocs(qy); return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  },
-  forRegion: async (region) => {
-    const qy = query(collection(db, 'campaigns'), where('region','==',region), where('status','==','active'));
-    const snap = await getDocs(qy); return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  },
-  get: async (id) => { const s = await getDoc(doc(db,'campaigns', id)); return s.exists()? { id, ...s.data() }: null; }
-};
+  forCompany: (companyId) => db.where('campaigns', c => c.companyId === companyId && c.status === 'active'),
+  allActive: () => db.where('campaigns', c => c.status === 'active'),
+  forRegion: (region) => db.where('campaigns', c => c.region === region && c.status === 'active'),
+  get: (id) => db.findById('campaigns', id),
 
-export const Applications = {
-  create: async ({campaignId, promoterId, note}) => {
-    const curr = await Applications.forPromoterCampaign({campaignId, promoterId}); if (curr.length) return null;
-    const a = { campaignId, promoterId, note: note||'', status:'pending', createdAt: new Date().toISOString() };
-    const ref = await addDoc(collection(db, 'applications'), a);
-    return { id: ref.id, ...a };
+  hasApplied: (campaignId, promoterId) => db.where('applications', a => a.campaignId === campaignId && a.promoterId === promoterId).length > 0,
+  apply: ({campaignId, promoterId, note}) => {
+    if (Campaigns.hasApplied(campaignId, promoterId)) return null;
+    const app = { id: uid(), campaignId, promoterId, note: note ?? '', createdAt: new Date().toISOString(), status:'pending' };
+    db.push('applications', app);
+    return app;
   },
-  forPromoterCampaign: async ({campaignId, promoterId}) => {
-    const qy = query(collection(db, 'applications'), where('campaignId','==',campaignId), where('promoterId','==',promoterId));
-    const snap = await getDocs(qy); return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  applicationsForCompany: (companyId) => {
+    const mine = Campaigns.forCompany(companyId).map(c=>c.id);
+    return db.where('applications', a => mine.includes(a.campaignId));
   },
-  forCompany: async (companyId) => {
-    const camps = await Campaigns.forCompany(companyId); const ids = new Set(camps.map(c=>c.id));
-    const snap = await getDocs(collection(db, 'applications'));
-    return snap.docs.map(d=>({ id: d.id, ...d.data() })).filter(a => ids.has(a.campaignId));
-  },
-  forCampaign: async (campaignId) => {
-    const qy = query(collection(db, 'applications'), where('campaignId','==',campaignId));
-    const snap = await getDocs(qy); return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  }
+  applicationsForCampaign: (campaignId) => db.where('applications', a => a.campaignId === campaignId),
 };

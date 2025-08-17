@@ -1,104 +1,59 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>FindMe! — Promoter Profile</title><link rel="stylesheet" href="assets/style.css"/></head>
-<body><div class="container">
-  <div id="nav" class="nav"><div class="brand">FindMe<span style="color:#22c55e">!</span></div></div>
-  <div class="card">
-    <h1>Promoter Profile</h1>
-    <p class="kicker">Update your details and documents</p>
-
-    <div class="row">
-      <div class="col"><label>Full Name</label><input id="name" placeholder="e.g. Hloni"/></div>
-      <div class="col"><label>Surname</label><input id="surname" placeholder="e.g. Mokoena"/></div>
-    </div>
-    <div class="row">
-      <div class="col"><label>South African ID Number</label><input id="idNumber" maxlength="13" placeholder="13 digits"/></div>
-      <div class="col"><label>Region (Province)</label><select id="region"></select></div>
-    </div>
-    <div class="row">
-      <div class="col"><label>Availability</label><input id="availability" placeholder="e.g. Weekends, evenings"/></div>
-      <div class="col"><label>Skills (comma-separated)</label><input id="skills" placeholder="Sampling, Roadshows, Launches"/></div>
-    </div>
-    <div class="row">
-      <div class="col">
-        <label>Upload / Replace CV (PDF/Doc)</label>
-        <input id="cv" type="file" accept=".pdf,.doc,.docx"/>
-        <div class="small" id="cvInfo"></div>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FindMe! — Promoter Profile</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <div class="container">
+    <div id="nav"></div>
+    <div class="card">
+      <h1>Promoter Profile</h1>
+      <p class="kicker">Complete your profile to start applying</p>
+      <div class="row">
+        <div class="col">
+          <label>Region (Province)</label>
+          <select id="region"></select>
+        </div>
+        <div class="col">
+          <label>Availability</label>
+          <input id="availability" placeholder="e.g. Weekends, evenings" />
+        </div>
+      </div>
+      <label>Skills (comma-separated)</label>
+      <input id="skills" placeholder="Sampling, Roadshows, Launches" />
+      <div class="toolbar">
+        <button class="btn" id="saveBtn">Save Profile</button>
+        <a class="btn secondary" href="promoter_dashboard.html">Skip for now</a>
       </div>
     </div>
-
-    <div class="row" style="margin-top:12px; gap:8px">
-      <button class="btn" id="saveBtn">Save Profile</button>
-      <a class="btn secondary" href="promoter_dashboard.html">Back to Dashboard</a>
-    </div>
+    <footer>FindMe! MVP • LocalStorage demo</footer>
   </div>
-  <footer class="small">FindMe! • Firebase Auth + Firestore + Storage</footer>
-</div>
 
-<script type="module">
-  import { REGIONS_SA, showToast, validSouthAfricaID } from './js/utils.js';
-  import { auth, db, storage } from './js/firebase.js';
-  import { Auth } from './js/auth.js';
-  import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+  <script type="module">
+    import { REGIONS_SA, showToast } from './js/utils.js';
+    import { db } from './js/storage.js';
+    import { Auth, ensureNav } from './js/auth.js';
+    ensureNav();
+    const me = Auth.requireAuth();
+    if (me.role !== 'promoter') location.href = 'company_dashboard.html';
 
-  const nameEl = document.querySelector('#name');
-  const surnameEl = document.querySelector('#surname');
-  const idEl = document.querySelector('#idNumber');
-  const regionSel = document.querySelector('#region');
-  const availabilityEl = document.querySelector('#availability');
-  const skillsEl = document.querySelector('#skills');
-  const cvInput = document.querySelector('#cv');
-  const cvInfo = document.querySelector('#cvInfo');
+    const regionSel = document.querySelector('#region');
+    REGIONS_SA.forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; regionSel.appendChild(o); });
+    regionSel.value = me.region ?? REGIONS_SA[0];
+    document.querySelector('#availability').value = me.availability ?? '';
+    document.querySelector('#skills').value = Array.isArray(me.skills) ? me.skills.join(', ') : '';
 
-  REGIONS_SA.forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; regionSel.appendChild(o); });
-
-  let current = null;
-  Auth.onChange(async (u)=>{
-    if (!u) { location.href='login.html'; return; }
-    const snap = await getDoc(doc(db,'users', u.uid));
-    current = snap.data() || {};
-    nameEl.value = current.name || (u.displayName?.split(' ')[0] ?? '');
-    surnameEl.value = current.surname || (u.displayName?.split(' ').slice(1).join(' ') ?? '');
-    idEl.value = current.idNumber || '';
-    regionSel.value = current.region || REGIONS_SA[0];
-    availabilityEl.value = current.availability || '';
-    skillsEl.value = Array.isArray(current.skills) ? current.skills.join(', ') : '';
-    if (current.cvUrl) cvInfo.innerHTML = `Current CV: <a class="link" href="${current.cvUrl}" target="_blank" rel="noopener">View</a>`;
-  });
-
-  saveBtn.addEventListener('click', async ()=>{
-    const u = auth.currentUser; if (!u) return;
-    const data = {
-      name: nameEl.value.trim(),
-      surname: surnameEl.value.trim(),
-      idNumber: idEl.value.trim(),
-      region: regionSel.value,
-      availability: availabilityEl.value.trim(),
-      skills: skillsEl.value.split(',').map(s=>s.trim()).filter(Boolean)
-    };
-    if (!data.name || !data.surname) { showToast('Name and surname are required'); return; }
-    if (!validSouthAfricaID(data.idNumber)) { showToast('ID must be 13 digits'); return; }
-
-    let cvUrl = current?.cvUrl || null;
-    if (cvInput.files?.length) {
-      const file = cvInput.files[0];
-      const ok = ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!ok.includes(file.type)) { showToast('CV must be PDF or Word'); return; }
-      if (file.size > 10*1024*1024) { showToast('CV must be ≤ 10MB'); return; }
-      const safe = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-      const r = ref(storage, `cvs/${u.uid}/${Date.now()}_${safe}`);
-      const snap = await uploadBytes(r, file);
-      cvUrl = await getDownloadURL(snap.ref);
-    }
-
-    await setDoc(doc(db,'users', u.uid), {
-      uid: u.uid, email: u.email, role: 'promoter',
-      ...data, cvUrl
-    }, { merge:true });
-
-    showToast('Profile updated');
-    setTimeout(()=> location.href='promoter_dashboard.html', 400);
-  });
-</script>
-</body></html>
+    document.querySelector('#saveBtn').addEventListener('click', ()=>{
+      const region = regionSel.value;
+      const availability = document.querySelector('#availability').value.trim();
+      const skills = document.querySelector('#skills').value.split(',').map(s=>s.trim()).filter(Boolean);
+      db.updateById('users', me.id, (u)=> ({...u, region, availability, skills}));
+      showToast('Profile saved');
+      setTimeout(()=> location.href='promoter_dashboard.html', 400);
+    });
+  </script>
+</body>
+</html>
