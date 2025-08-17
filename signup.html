@@ -24,7 +24,6 @@
     <div class="row" style="margin-top:12px; gap:8px">
       <button class="btn" id="signupBtn">Sign Up</button>
       <div class="small">Already have an account? <a class="link" href="login.html">Login</a></div>
-      <div class="small"><a class="link" href="verify_email.html">Resend verification</a></div>
     </div>
   </div>
   <footer class="small">FindMe! • Firebase Auth + Firestore + Storage</footer>
@@ -34,23 +33,17 @@
   import { Auth } from './js/auth.js';
   const role = document.querySelector('#role'); const regionSel = document.querySelector('#region');
   const extras = document.querySelector('#promoterExtras'); const extras2 = document.querySelector('#promoterExtras2');
-  const surnameEl = document.querySelector('#surname'); const idEl = document.querySelector('#idNumber'); const cvInput = document.querySelector('#cv');
-  const nameEl = document.querySelector('#name'); const emailEl = document.querySelector('#email'); const passEl = document.querySelector('#password');
+  const surname = document.querySelector('#surname'); const idNumber = document.querySelector('#idNumber'); const cvInput = document.querySelector('#cv');
   REGIONS_SA.forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; regionSel.appendChild(o); });
   const toggleExtras = () => { const show = role.value === 'promoter'; extras.style.display = show ? '' : 'none'; extras2.style.display = show ? '' : 'none'; };
   role.addEventListener('change', toggleExtras); toggleExtras();
-  document.querySelector('#signupBtn').addEventListener('click', async ()=>{
+  signupBtn.addEventListener('click', async ()=>{
     try {
       const roleVal = role.value;
       const payload = {
-        role: roleVal,
-        name: (nameEl?.value||'').trim(),
-        surname: (surnameEl?.value||'').trim(),
-        idNumber: (idEl?.value||'').trim(),
-        email: (emailEl?.value||'').trim(),
-        password: passEl?.value||'',
-        region: roleVal==='promoter' ? regionSel.value : null,
-        cvFile: (roleVal==='promoter' && cvInput?.files?.length) ? cvInput.files[0] : null
+        role: roleVal, name: name.value.trim(), surname: surname?.value?.trim(), idNumber: idNumber?.value?.trim(),
+        email: email.value.trim(), password: password.value, region: roleVal==='promoter' ? regionSel.value : null,
+        cvFile: (roleVal==='promoter' && cvInput.files?.length) ? cvInput.files[0] : null
       };
       if (!payload.email || !payload.password || !payload.name) { showToast('Name, email & password are required'); return; }
       if (roleVal === 'promoter') {
@@ -63,7 +56,7 @@
         }
       }
       const user = await Auth.signUp(payload);
-      showToast('Account created — verify your email');
+      showToast('Account created');
       const prof = await Auth.getProfile(user.uid);
       if (prof?.role === 'promoter') location.href='promoter_profile.html';
       else location.href='company_dashboard.html';

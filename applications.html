@@ -1,76 +1,48 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FindMe! — Applications</title>
-  <link rel="stylesheet" href="assets/style.css" />
-</head>
-<body>
-  <div class="container">
-    <div id="nav" class="nav"><div class="brand">FindMe<span style="color:#22c55e">!</span></div></div>
-    <div class="card">
-      <h1>Applications</h1>
-      <div id="list"></div>
-    </div>
-    <footer class="small">FindMe! • Firebase Auth + Firestore + Storage</footer>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FindMe! — Applications</title><link rel="stylesheet" href="assets/style.css"/></head>
+<body><div class="container">
+  <div id="nav" class="nav"><div class="brand">FindMe<span style="color:#22c55e">!</span></div></div>
+  <div class="card">
+    <h1>Applications</h1>
+    <div id="list"></div>
   </div>
+  <footer class="small">FindMe! • Firebase Auth + Firestore + Storage</footer>
+</div>
+<script type="module">
+  import { auth, db } from './js/firebase.js';
+  import { Campaigns, Applications } from './js/campaigns.js';
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  <script type="module">
-    import { auth, db } from './js/firebase.js';
-    import { Campaigns, Applications } from './js/campaigns.js';
-    import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  const params = new URLSearchParams(location.search);
+  const campaignId = params.get('campaignId');
 
-    const params = new URLSearchParams(location.search);
-    const campaignId = params.get('campaignId');
-
-    async function render() {
-      const u = auth.currentUser; if (!u) { location.href='login.html'; return; }
-      const container = document.querySelector('#list');
-      let items = []; if (campaignId) items = await Applications.forCampaign(campaignId); else items = await Applications.forCompany(u.uid);
-      if (!items.length) { container.innerHTML = '<div class="empty">No applications yet.</div>'; return; }
-
-      let html = '';
-      for (const a of items) {
-        const cam = await Campaigns.get(a.campaignId);
-        const promoterSnap = await getDoc(doc(db,'users', a.promoterId));
-        const p = promoterSnap.data() || {};
-        const fullName = [p.name, p.surname].filter(Boolean).join(' ') || p.email || 'Unknown';
-        const statusClass = a.status === 'approved' ? 'approved' : a.status === 'declined' ? 'declined' : 'pending';
-        html += `
-          <div class="card">
-            <div class="kicker">${cam?.title ?? 'Campaign'} • ${new Date(cam?.date || a.createdAt).toLocaleDateString()}</div>
-            <h3>${fullName}</h3>
-            <div class="badge">${p.region || '-'}</div>
-            <p class="small">ID: ${p.idNumber || '—'}</p>
-            <p class="small">Email: ${p.email || '—'}</p>
-            <p class="small">Skills: ${(p.skills||[]).join(', ') || '—'}</p>
-            <div class="row" style="justify-content: space-between; align-items:center">
-              <span class="small">Applied on ${new Date(a.createdAt).toLocaleDateString()}</span>
-              <span class="status-badge ${statusClass}">${(a.status||'pending').toUpperCase()}</span>
-            </div>
-            <div class="row" style="gap:8px; margin-top:8px">
-              <button class="btn secondary" data-mark="approved" data-id="${a.id}" ${a.status!=='pending'?'disabled':''}>Approve</button>
-              <button class="btn danger" data-mark="declined" data-id="${a.id}" ${a.status!=='pending'?'disabled':''}>Decline</button>
-              ${p.cvUrl ? `<a class="btn" href="${p.cvUrl}" target="_blank" rel="noopener">View CV</a>` : `<button class="btn secondary" disabled>No CV</button>`}
-            </div>
+  async function render() {
+    const u = auth.currentUser; if (!u) { location.href='login.html'; return; }
+    const container = document.querySelector('#list');
+    let items = []; if (campaignId) items = await Applications.forCampaign(campaignId); else items = await Applications.forCompany(u.uid);
+    if (!items.length) { container.innerHTML = '<div class="empty">No applications yet.</div>'; return; }
+    let html = '';
+    for (const a of items) {
+      const cam = await Campaigns.get(a.campaignId);
+      const promoterSnap = await getDoc(doc(db,'users', a.promoterId));
+      const p = promoterSnap.data() || {};
+      const fullName = [p.name, p.surname].filter(Boolean).join(' ') || p.email || 'Unknown';
+      html += `
+        <div class="card">
+          <div class="kicker">${cam?.title ?? 'Campaign'} • ${new Date(cam?.date || a.createdAt).toLocaleDateString()}</div>
+          <h3>${fullName}</h3>
+          <div class="badge">${p.region || '-'}</div>
+          <p class="small">ID: ${p.idNumber || '—'}</p>
+          <p class="small">Email: ${p.email || '—'}</p>
+          <p class="small">Skills: ${(p.skills||[]).join(', ') || '—'}</p>
+          <div class="row" style="justify-content:space-between; align-items:center">
+            <span class="small">Applied on ${new Date(a.createdAt).toLocaleDateString()}</span>
+            ${p.cvUrl ? `<a class="btn" href="${p.cvUrl}" target="_blank" rel="noopener">View CV</a>` : `<button class="btn secondary" disabled>No CV</button>`}
           </div>
-        `;
-      }
-      container.innerHTML = html;
-      wireStatusButtons(container);
+        </div>`;
     }
-
-    function wireStatusButtons(container){
-      container.querySelectorAll('[data-mark]').forEach(btn=>{
-        btn.addEventListener('click', async (e)=>{
-          const status = e.currentTarget.getAttribute('data-mark');
-          const appId = e.currentTarget.getAttribute('data-id');
-          await updateDoc(doc(db,'applications', appId), { status });
-          location.reload();
-        });
-      });
-    }
-    document.addEventListener('DOMContentLoaded', render);
-  </script>
-</body>
-</html>
+    container.innerHTML = html;
+  }
+  document.addEventListener('DOMContentLoaded', render);
+</script></body></html>

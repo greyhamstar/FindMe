@@ -67,15 +67,15 @@
     if (current.cvUrl) cvInfo.innerHTML = `Current CV: <a class="link" href="${current.cvUrl}" target="_blank" rel="noopener">View</a>`;
   });
 
-  document.querySelector('#saveBtn').addEventListener('click', async ()=>{
+  saveBtn.addEventListener('click', async ()=>{
     const u = auth.currentUser; if (!u) return;
     const data = {
-      name: (nameEl?.value||'').trim(),
-      surname: (surnameEl?.value||'').trim(),
-      idNumber: (idEl?.value||'').trim(),
+      name: nameEl.value.trim(),
+      surname: surnameEl.value.trim(),
+      idNumber: idEl.value.trim(),
       region: regionSel.value,
-      availability: (availabilityEl?.value||'').trim(),
-      skills: (skillsEl?.value||'').split(',').map(s=>s.trim()).filter(Boolean)
+      availability: availabilityEl.value.trim(),
+      skills: skillsEl.value.split(',').map(s=>s.trim()).filter(Boolean)
     };
     if (!data.name || !data.surname) { showToast('Name and surname are required'); return; }
     if (!validSouthAfricaID(data.idNumber)) { showToast('ID must be 13 digits'); return; }

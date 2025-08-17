@@ -26,13 +26,11 @@
   import { auth } from './js/firebase.js';
   import { Campaigns } from './js/campaigns.js';
   const regionSel = document.querySelector('#region'); REGIONS_SA.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; regionSel.appendChild(o); });
-  document.querySelector('#createBtn').addEventListener('click', async ()=>{
-    const titleEl = document.querySelector('#title'); const dateEl = document.querySelector('#date');
-    const budgetEl = document.querySelector('#budget'); const detailsEl = document.querySelector('#details');
-    const titleVal = (titleEl?.value||'').trim(); const regionVal = regionSel.value; const dateVal = dateEl?.value||'';
-    const budgetVal = budgetEl?.value||''; const detailsVal = (detailsEl?.value||'').trim();
-    if (!titleVal || !regionVal || !dateVal) { showToast('Please fill title, region, date'); return; }
-    await Campaigns.create({ companyId: auth.currentUser.uid, title: titleVal, region: regionVal, date: dateVal, budget: budgetVal, details: detailsVal });
+  createBtn.addEventListener('click', async ()=>{
+    const title = title.value.trim(); const region = regionSel.value; const date = document.querySelector('#date').value;
+    const budget = document.querySelector('#budget').value; const details = details.value.trim();
+    if (!title || !region || !date) { showToast('Please fill title, region, date'); return; }
+    await Campaigns.create({ companyId: auth.currentUser.uid, title, region, date, budget, details });
     showToast('Campaign created'); setTimeout(()=> location.href='company_dashboard.html', 400);
   });
 </script></body></html>

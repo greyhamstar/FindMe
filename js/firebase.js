@@ -4,7 +4,6 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-aut
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-/** Replace with your config from Firebase Console → Project settings → General */
 export const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -13,10 +12,6 @@ export const firebaseConfig = {
   messagingSenderId: "YOUR_SENDER_ID",
   appId: "YOUR_APP_ID"
 };
-
-if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('YOUR_')) {
-  throw new Error('Firebase config not set: replace placeholders in js/firebase.js');
-}
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

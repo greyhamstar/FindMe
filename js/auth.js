@@ -1,13 +1,6 @@
 
 import { auth, db, storage } from './firebase.js';
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  updateProfile,
-  sendEmailVerification
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { showToast } from './utils.js';
@@ -37,7 +30,6 @@ export const Auth = {
       availability: role==='promoter'? '' : undefined, cvUrl: cvUrl || null, createdAt: new Date().toISOString()
     };
     await setDoc(doc(db, 'users', cred.user.uid), userDoc);
-    try { await sendEmailVerification(cred.user); } catch(e) { /* ignore */ }
     return cred.user;
   },
 
@@ -60,12 +52,4 @@ export const ensureNav = (user) => {
       </div>
     </div>`;
   root.querySelector('#logoutBtn')?.addEventListener('click', async ()=>{ await Auth.logout(); showToast('Logged out'); location.href='login.html'; });
-};
-
-export const mustBeVerified = async (user) => {
-  try { await user.reload?.(); } catch {}
-  if (!user.emailVerified) throw new Error("Please verify your email before continuing.");
-};
-export const resendVerification = async () => {
-  if (!auth.currentUser) throw new Error("Not signed in"); await sendEmailVerification(auth.currentUser);
 };
