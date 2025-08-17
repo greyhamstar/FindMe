@@ -1,0 +1,31 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function userRole(uid) {
+      return get(/databases/$(db)/documents/users/$(uid)).data.role;
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    match /campaigns/{id} {
+      allow read: if true;
+      allow create: if isSignedIn() && userRole(request.auth.uid) == 'company';
+      allow update, delete: if isSignedIn() && userRole(request.auth.uid) == 'company'
+        && request.auth.uid == resource.data.companyId;
+    }
+
+    match /applications/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && userRole(request.auth.uid) == 'promoter'
+        && request.resource.data.promoterId == request.auth.uid;
+      allow update: if isSignedIn() && userRole(request.auth.uid) == 'company'
+        && get(/databases/$(db)/documents/campaigns/$(request.resource.data.campaignId)).data.companyId == request.auth.uid;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.promoterId;
+    }
+  }
+}

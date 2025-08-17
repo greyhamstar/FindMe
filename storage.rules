@@ -1,0 +1,15 @@
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() { return request.auth != null; }
+    match /cvs/{userId}/{allPaths=**} {
+      // anyone signed-in can view CVs (so companies can open)
+      allow read: if isSignedIn();
+      // only the owner can upload/replace; limit size ≤ 10MB
+      allow write: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.size < 10 * 1024 * 1024;
+    }
+  }
+}

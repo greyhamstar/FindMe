@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FindMe! — Login</title><link rel="stylesheet" href="assets/style.css"/></head>
+<body><div class="container">
+  <div id="nav" class="nav"><div class="brand">FindMe<span style="color:#22c55e">!</span></div></div>
+  <div class="card">
+    <h1>Welcome back</h1><p class="kicker">Login to continue</p>
+    <div class="row"><div class="col"><label>Email</label><input id="email" type="email"/></div>
+      <div class="col"><label>Password</label><input id="password" type="password"/></div></div>
+    <div class="row" style="gap:8px; margin-top:12px">
+      <button class="btn" id="loginBtn">Login</button>
+      <div class="small">No account? <a class="link" href="signup.html">Create one</a></div>
+      <div class="small"><a class="link" href="reset_password.html">Forgot password?</a></div>
+    </div>
+  </div>
+  <footer class="small">FindMe! • Firebase Auth + Firestore + Storage</footer>
+</div>
+<script type="module">
+  import { Auth, ensureNav, mustBeVerified } from './js/auth.js';
+  import { showToast } from './js/utils.js';
+  Auth.onChange(async (user)=>{
+    ensureNav(user);
+    if (user) {
+      const prof = await Auth.getProfile(user.uid);
+      if (prof?.role === 'company') location.href='company_dashboard.html';
+      else if (prof?.role === 'promoter') location.href='promoter_dashboard.html';
+    }
+  });
+  const emailEl = document.querySelector('#email');
+  const passEl = document.querySelector('#password');
+  document.querySelector('#loginBtn').addEventListener('click', async ()=>{
+    try { const u = await Auth.logIn({email: (emailEl?.value||'').trim(), password: passEl?.value||''}); await mustBeVerified(u); showToast('Logged in'); }
+    catch(e){ showToast(e.message || 'Login failed'); }
+  });
+</script></body></html>

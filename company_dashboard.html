@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FindMe! — Company Dashboard</title><link rel="stylesheet" href="assets/style.css"/></head>
+<body><div class="container">
+  <div id="nav" class="nav"><div class="brand">FindMe<span style="color:#22c55e">!</span></div></div>
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h1>Company Dashboard</h1>
+    <a class="btn" href="post_campaign.html">Post Campaign</a>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between; align-items:center">
+      <h2>Active Campaigns</h2>
+      <button id="toggleBtn" class="btn secondary">Show/Hide</button>
+    </div>
+    <div id="campaigns" class="grid"></div>
+  </div>
+  <footer class="small">FindMe! • Firebase Auth + Firestore + Storage</footer>
+</div>
+<script type="module">
+  import { auth, db } from './js/firebase.js';
+  import { Auth } from './js/auth.js';
+  import { Campaigns } from './js/campaigns.js';
+  import { UI } from './js/ui.js';
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  let user = null;
+  Auth.onChange(async (u)=>{
+    if (!u) { location.href='login.html'; return; }
+    user = u;
+    const snap = await getDoc(doc(db,'users', u.uid));
+    const prof = snap.data();
+    if (prof.role !== 'company') { location.href='promoter_dashboard.html'; return; }
+    render();
+  });
+
+  async function render(){
+    const root = document.querySelector('#campaigns');
+    const list = await Campaigns.forCompany(user.uid);
+    if (!list.length) { root.innerHTML = UI.empty('No active campaigns yet. Click "Post Campaign"'); return; }
+    root.innerHTML = list.map(c => `
+      <div class="card">
+        <div class="kicker">Campaign • ${new Date(c.date).toLocaleDateString()}</div>
+        <h3>${c.title}</h3>
+        <div class="badge">${c.region}</div>
+        <p style="min-height:48px">${c.details ?? ''}</p>
+        <div class="row" style="justify-content:space-between; align-items:center">
+          <span class="small">Budget: R ${Number(c.budget||0).toLocaleString()}</span>
+          <a class="btn" href="applications.html?campaignId=${c.id}">View Applications</a>
+        </div>
+      </div>`).join('');
+  }
+  document.querySelector('#toggleBtn').addEventListener('click', ()=>{
+    const el = document.querySelector('#campaigns');
+    el.style.display = (el.style.display === 'none' ? '' : 'none');
+  });
+</script></body></html>
