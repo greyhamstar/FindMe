@@ -1,1 +1,1 @@
-FindMe! v3 — Browse Promoters now has a detail modal and invite-to-campaign flow. Promoters can accept/decline from their dashboard.
+FindMe! v3.1 — Home button removed from the login page (requested tweak).
