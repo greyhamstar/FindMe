@@ -1,0 +1,1 @@
+// Placeholder for future Firebase config — not used in this build.
