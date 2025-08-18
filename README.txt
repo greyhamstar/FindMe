@@ -1,1 +1,1 @@
-FindMe! v3.1 — Home button removed from the login page (requested tweak).
+FindMe! v4 — Polished UI/UX (LocalStorage). Ready for static hosting.

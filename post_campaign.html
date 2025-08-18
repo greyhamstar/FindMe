@@ -1,38 +1,16 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>FindMe! — Post Campaign</title><link rel="stylesheet" href="assets/style.css"/></head>
-<body><div class="container">
-  <div id="nav" class="nav"><div class="brand">FindMe<span style="color:#22c55e">!</span></div></div>
-  <div class="card">
-    <h1>Post a Campaign</h1>
-    <div class="row">
-      <div class="col"><label>Title</label><input id="title" placeholder="e.g. Store Launch — Sandton"/></div>
-      <div class="col"><label>Region (Province)</label><select id="region"></select></div>
-    </div>
-    <div class="row">
-      <div class="col"><label>Date</label><input id="date" type="date"/></div>
-      <div class="col"><label>Budget (ZAR)</label><input id="budget" type="number" min="0" step="100" placeholder="5000"/></div>
-    </div>
-    <label>Details</label><textarea id="details" rows="4" placeholder="Describe the campaign, timing, requirements…"></textarea>
-    <div class="row" style="margin-top:12px; gap:8px">
-      <button class="btn" id="createBtn">Create Campaign</button>
-      <a class="btn secondary" href="company_dashboard.html">Cancel</a>
-    </div>
-  </div>
-  <footer class="small">FindMe! • Firebase Auth + Firestore + Storage</footer>
+<!DOCTYPE html><html lang='en'><head>
+<meta charset='UTF-8'/><meta name='viewport' content='width=device-width, initial-scale=1.0'/>
+<title>FindMe — Post Campaign</title>
+<link rel='preconnect' href='https://fonts.googleapis.com'>
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'>
+<link rel='stylesheet' href='css/style.css'/></head><body><header class='header'><div class='logo'><div class='logo-mark'></div><div>FindMe!</div></div><nav class='nav'><a class='badge' href='dashboard.html'>Dashboard</a><button id='logoutBtn' class='badge secondary'>Logout</button></nav></header><main class='container'><div class='card'><h1>Post a Campaign</h1><div id='msg'></div>
+<div class='grid grid-2'>
+  <div><label>Title</label><input id='title' placeholder='Campus Promo'/></div>
+  <div><label>Region</label><select id='region'><option value='Eastern Cape'>Eastern Cape</option><option value='Free State'>Free State</option><option value='Gauteng'>Gauteng</option><option value='KwaZulu-Natal'>KwaZulu-Natal</option><option value='Limpopo'>Limpopo</option><option value='Mpumalanga'>Mpumalanga</option><option value='North West'>North West</option><option value='Northern Cape'>Northern Cape</option><option value='Western Cape'>Western Cape</option></select></div>
+  <div><label>Budget (ZAR)</label><input id='budget' type='number' placeholder='5000'/></div>
+  <div><label>Start Date</label><input id='startDate' type='date'/></div>
+  <div style='grid-column:1 / -1;'><label>Description</label><textarea id='description' rows='4' placeholder='Tell promoters what the campaign is about...'></textarea></div>
 </div>
-<script type="module">
-  import { REGIONS_SA, showToast } from './js/utils.js';
-  import { auth } from './js/firebase.js';
-  import { Campaigns } from './js/campaigns.js';
-  const regionSel = document.querySelector('#region'); REGIONS_SA.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; regionSel.appendChild(o); });
-  document.querySelector('#createBtn').addEventListener('click', async ()=>{
-    const titleEl = document.querySelector('#title'); const dateEl = document.querySelector('#date');
-    const budgetEl = document.querySelector('#budget'); const detailsEl = document.querySelector('#details');
-    const titleVal = (titleEl?.value||'').trim(); const regionVal = regionSel.value; const dateVal = dateEl?.value||'';
-    const budgetVal = budgetEl?.value||''; const detailsVal = (detailsEl?.value||'').trim();
-    if (!titleVal || !regionVal || !dateVal) { showToast('Please fill title, region, date'); return; }
-    await Campaigns.create({ companyId: auth.currentUser.uid, title: titleVal, region: regionVal, date: dateVal, budget: budgetVal, details: detailsVal });
-    showToast('Campaign created'); setTimeout(()=> location.href='company_dashboard.html', 400);
-  });
-</script></body></html>
+<div class='flex'><button id='postBtn'>Post Campaign</button><a class='right' href='dashboard.html'>Back to Dashboard</a></div>
+</div></main><footer class='footer'>© 2025 FindMe! · Made with ♥</footer><script src='js/app.js'></script><script>const me=getSession();protect(me);if(me.role!=='company')window.location.href='dashboard.html';document.getElementById('logoutBtn').addEventListener('click',logout);document.getElementById('postBtn').addEventListener('click',()=>{const c={id:crypto.randomUUID(),ownerId:me.id,title:document.getElementById('title').value.trim(),region:document.getElementById('region').value,budget:Number(document.getElementById('budget').value||0),startDate:document.getElementById('startDate').value,description:document.getElementById('description').value.trim(),createdAt:Date.now()};if(!c.title||!c.region||!c.budget){return showMsg('Please complete Title, Region and Budget.','error');}saveCampaign(c);alert('Campaign posted successfully!');window.location.href='dashboard.html';});</script></body></html>
