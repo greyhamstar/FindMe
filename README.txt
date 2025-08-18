@@ -1,1 +1,1 @@
-FindMe! v2 — now with a Browse Promoters page for companies.
+FindMe! v3 — Browse Promoters now has a detail modal and invite-to-campaign flow. Promoters can accept/decline from their dashboard.
