@@ -1,16 +1,72 @@
 <!DOCTYPE html><html lang='en'><head>
-<meta charset='UTF-8'/><meta name='viewport' content='width=device-width, initial-scale=1.0'/>
+<meta charset='UTF-8'/>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover'/>
 <title>FindMe — Post Campaign</title>
 <link rel='preconnect' href='https://fonts.googleapis.com'>
 <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
 <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'>
-<link rel='stylesheet' href='css/style.css'/></head><body><header class='header'><div class='logo'><div class='logo-mark'></div><div>FindMe!</div></div><nav class='nav'><a class='badge' href='dashboard.html'>Dashboard</a><button id='logoutBtn' class='badge secondary'>Logout</button></nav></header><main class='container'><div class='card'><h1>Post a Campaign</h1><div id='msg'></div>
-<div class='grid grid-2'>
-  <div><label>Title</label><input id='title' placeholder='Campus Promo'/></div>
-  <div><label>Region</label><select id='region'><option value='Eastern Cape'>Eastern Cape</option><option value='Free State'>Free State</option><option value='Gauteng'>Gauteng</option><option value='KwaZulu-Natal'>KwaZulu-Natal</option><option value='Limpopo'>Limpopo</option><option value='Mpumalanga'>Mpumalanga</option><option value='North West'>North West</option><option value='Northern Cape'>Northern Cape</option><option value='Western Cape'>Western Cape</option></select></div>
-  <div><label>Budget (ZAR)</label><input id='budget' type='number' placeholder='5000'/></div>
-  <div><label>Start Date</label><input id='startDate' type='date'/></div>
-  <div style='grid-column:1 / -1;'><label>Description</label><textarea id='description' rows='4' placeholder='Tell promoters what the campaign is about...'></textarea></div>
-</div>
-<div class='flex'><button id='postBtn'>Post Campaign</button><a class='right' href='dashboard.html'>Back to Dashboard</a></div>
-</div></main><footer class='footer'>© 2025 FindMe! · Made with ♥</footer><script src='js/app.js'></script><script>const me=getSession();protect(me);if(me.role!=='company')window.location.href='dashboard.html';document.getElementById('logoutBtn').addEventListener('click',logout);document.getElementById('postBtn').addEventListener('click',()=>{const c={id:crypto.randomUUID(),ownerId:me.id,title:document.getElementById('title').value.trim(),region:document.getElementById('region').value,budget:Number(document.getElementById('budget').value||0),startDate:document.getElementById('startDate').value,description:document.getElementById('description').value.trim(),createdAt:Date.now()};if(!c.title||!c.region||!c.budget){return showMsg('Please complete Title, Region and Budget.','error');}saveCampaign(c);alert('Campaign posted successfully!');window.location.href='dashboard.html';});</script></body></html>
+<link rel='stylesheet' href='css/style.css'/>
+</head><body>
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark"></div>
+    <div>FindMe!</div>
+  </div>
+  <button class="hamburger" id="navToggle" aria-label="Toggle menu">☰</button>
+  <nav class="nav">
+    
+  <a class="badge" href="dashboard.html">Dashboard</a>
+  <button id="logoutBtn" class="badge secondary">Logout</button>
+
+  </nav>
+</header>
+<main class="container">
+  <div class="card">
+    <h1>Post a Campaign</h1>
+    <div id="msg"></div>
+    <div class="grid grid-2">
+      <div><label>Title</label><input id="title" placeholder="Campus Promo"/></div>
+      <div><label>Region</label>
+        <select id="region">
+          <option value="Eastern Cape">Eastern Cape</option>
+          <option value="Free State">Free State</option>
+          <option value="Gauteng">Gauteng</option>
+          <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+          <option value="Limpopo">Limpopo</option>
+          <option value="Mpumalanga">Mpumalanga</option>
+          <option value="North West">North West</option>
+          <option value="Northern Cape">Northern Cape</option>
+          <option value="Western Cape">Western Cape</option>
+        </select>
+      </div>
+      <div><label>Budget (ZAR)</label><input id="budget" type="number" placeholder="5000"/></div>
+      <div><label>Start Date</label><input id="startDate" type="date"/></div>
+      <div style="grid-column:1 / -1;"><label>Description</label><textarea id="description" rows="4" placeholder="Tell promoters what the campaign is about..."></textarea></div>
+    </div>
+    <div class="flex">
+      <button id="postBtn">Post Campaign</button>
+      <a class="right" href="dashboard.html">Back to Dashboard</a>
+    </div>
+  </div>
+</main>
+<footer class='footer'>© 2025 FindMe! · Made with ♥</footer>
+<script src='js/app.js'></script>
+<script>
+const me=getSession(); protect(me);
+if(me.role!=='company') window.location.href='dashboard.html';
+document.getElementById('logoutBtn').addEventListener('click',logout);
+document.getElementById('postBtn').addEventListener('click',()=>{
+  const c={
+    id:crypto.randomUUID(), ownerId:me.id,
+    title:document.getElementById('title').value.trim(),
+    region:document.getElementById('region').value,
+    budget:Number(document.getElementById('budget').value||0),
+    startDate:document.getElementById('startDate').value,
+    description:document.getElementById('description').value.trim(),
+    createdAt:Date.now()
+  };
+  if(!c.title||!c.region||!c.budget){return showMsg('Please complete Title, Region and Budget.','error');}
+  saveCampaign(c); alert('Campaign posted successfully!'); window.location.href='dashboard.html';
+});
+</script>
+</body></html>

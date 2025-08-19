@@ -1,1 +1,1 @@
-FindMe! v4 — Polished UI/UX (LocalStorage). Ready for static hosting.
+FindMe v4.1 — Mobile-optimized (fresh build 2).

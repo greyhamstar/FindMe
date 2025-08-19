@@ -1,15 +1,212 @@
 <!DOCTYPE html><html lang='en'><head>
-<meta charset='UTF-8'/><meta name='viewport' content='width=device-width, initial-scale=1.0'/>
+<meta charset='UTF-8'/>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover'/>
 <title>FindMe — Browse Promoters</title>
 <link rel='preconnect' href='https://fonts.googleapis.com'>
 <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
 <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'>
-<link rel='stylesheet' href='css/style.css'/></head><body><header class='header'><div class='logo'><div class='logo-mark'></div><div>FindMe!</div></div><nav class='nav'><a class='badge' href='dashboard.html'>Dashboard</a><button id='logoutBtn' class='badge secondary'>Logout</button></nav></header><main class='container'><div class='card'>
-<h1>Browse Promoters</h1><p class='small'>Filter by name/email and province. Click <em>View</em> for full details, or <em>Invite</em> to a campaign.</p>
-<div class='grid grid-2'><div><label>Search</label><input id='q' placeholder='Type a name or email'/></div><div><label>Region (Province)</label><select id='region'><option value=''>All Regions</option><option value='Eastern Cape'>Eastern Cape</option><option value='Free State'>Free State</option><option value='Gauteng'>Gauteng</option><option value='KwaZulu-Natal'>KwaZulu-Natal</option><option value='Limpopo'>Limpopo</option><option value='Mpumalanga'>Mpumalanga</option><option value='North West'>North West</option><option value='Northern Cape'>Northern Cape</option><option value='Western Cape'>Western Cape</option></select></div></div>
-<div class='flex'><button id='refreshBtn'>Apply Filters</button><button id='clearBtn' class='secondary'>Clear</button><span class='right small' id='count'></span></div>
-<table class='table' id='promoterTable'><thead><tr><th>Name</th><th>Region</th><th>Email</th><th>SA ID</th><th>CV</th><th>Actions</th></tr></thead><tbody></tbody></table>
-</div></main>
-<div id='detailOverlay' class='modal-overlay'><div class='modal'><div class='modal-header'><h3 id='detailTitle'>Promoter Details</h3><button class='close-x' data-close='detailOverlay'>Close</button></div><div id='detailBody'></div><div class='modal-actions'><button id='detailInviteBtn'>Invite to Campaign</button></div></div></div>
-<div id='inviteOverlay' class='modal-overlay'><div class='modal'><div class='modal-header'><h3 id='inviteTitle'>Invite to Campaign</h3><button class='close-x' data-close='inviteOverlay'>Close</button></div><div id='inviteBody'><div class='grid grid-2'><div><label>Campaign</label><select id='inviteCampaign'></select><p class='small' id='inviteHint'></p></div><div><label>Message (optional)</label><textarea id='inviteMsg' rows='4' placeholder="Hi, we'd love you on this campaign…"></textarea></div></div></div><div class='modal-actions'><button id='sendInviteBtn'>Send Invite</button></div></div></div>
-<footer class='footer'>© 2025 FindMe! · Made with ♥</footer><script src='js/app.js'></script><script>const me=getSession();protect(me);if(!me||me.role!=='company'){window.location.href='dashboard.html';}document.getElementById('logoutBtn').addEventListener('click',logout);const q=document.getElementById('q');const regionSel=document.getElementById('region');const tbody=document.querySelector('#promoterTable tbody');const count=document.getElementById('count');function openOverlay(id){document.getElementById(id).style.display='flex';}function closeOverlay(id){document.getElementById(id).style.display='none';}document.body.addEventListener('click',e=>{const closeId=e.target.getAttribute('data-close');if(closeId)closeOverlay(closeId);});let selectedPromoter=null;function render(){const query=q.value.trim().toLowerCase();const region=regionSel.value;const promoters=listPromoters().filter(p=>{const matchQ=!query||(`${p.firstName||''} ${p.surname||''} ${p.email||''}`.toLowerCase().includes(query));const matchR=!region||p.region===region;return matchQ&&matchR;});tbody.innerHTML='';promoters.forEach(p=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${p.firstName||''} ${p.surname||''}</td><td>${p.region||'-'}</td><td>${p.email||'-'}</td><td>${p.idNumber||'-'}</td><td>${p.cvName||'-'}</td><td><button data-act='view' data-id='${p.id}'>View</button> <button class='secondary' data-act='invite' data-id='${p.id}'>Invite</button></td>`;tbody.appendChild(tr);});count.textContent=promoters.length+' promoter(s)';}tbody.addEventListener('click',e=>{const act=e.target.getAttribute('data-act');if(!act)return;const pid=e.target.getAttribute('data-id');const p=getUser(pid);if(!p)return;selectedPromoter=p;if(act==='view'){document.getElementById('detailTitle').textContent=`${p.firstName||''} ${p.surname||''}`.trim()||'Promoter Details';document.getElementById('detailBody').innerHTML=`<div class='grid grid-2'><div><strong>Region:</strong><br>${p.region||'-'}</div><div><strong>Email:</strong><br>${p.email||'-'}</div><div><strong>SA ID:</strong><br>${p.idNumber||'-'}</div><div><strong>CV:</strong><br>${p.cvName||'-'}</div></div>`;openOverlay('detailOverlay');}else if(act==='invite'){showInviteFor(p);}});document.getElementById('detailInviteBtn').addEventListener('click',()=>{if(selectedPromoter){closeOverlay('detailOverlay');showInviteFor(selectedPromoter);}});function showInviteFor(p){selectedPromoter=p;document.getElementById('inviteTitle').textContent='Invite '+(p.firstName||'')+' '+(p.surname||'');const sel=document.getElementById('inviteCampaign');sel.innerHTML='';const campaigns=listCampaigns().filter(c=>c.ownerId===me.id);const same=campaigns.filter(c=>c.region===p.region);const other=campaigns.filter(c=>c.region!==p.region);const ordered=[...same,...other];if(!ordered.length){sel.innerHTML='<option value="">No campaigns yet — create one first.</option>';}else{ordered.forEach(c=>{const opt=document.createElement('option');opt.value=c.id;opt.textContent=`${c.title} — ${c.region} (R ${c.budget})`;sel.appendChild(opt);});}document.getElementById('inviteHint').textContent=same.length?'Showing your campaigns (same region listed first).':'No same-region campaigns found; showing all your campaigns.';document.getElementById('inviteMsg').value='';openOverlay('inviteOverlay');}document.getElementById('sendInviteBtn').addEventListener('click',()=>{const campId=document.getElementById('inviteCampaign').value;const msg=document.getElementById('inviteMsg').value.trim();if(!campId){alert('Please select a campaign.');return;}sendInvite(me.id,selectedPromoter.id,campId,msg);closeOverlay('inviteOverlay');alert('Invite sent!');});document.getElementById('refreshBtn').addEventListener('click',render);document.getElementById('clearBtn').addEventListener('click',()=>{q.value='';regionSel.value='';render();});render();</script></body></html>
+<link rel='stylesheet' href='css/style.css'/>
+</head><body>
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark"></div>
+    <div>FindMe!</div>
+  </div>
+  <button class="hamburger" id="navToggle" aria-label="Toggle menu">☰</button>
+  <nav class="nav">
+    
+  <a class="badge" href="dashboard.html">Dashboard</a>
+  <button id="logoutBtn" class="badge secondary">Logout</button>
+
+  </nav>
+</header>
+<main class="container">
+  <div class="card">
+    <h1>Browse Promoters</h1>
+    <p class="small">Filter by name/email and province. Click <em>View</em> for full details, or <em>Invite</em> to a campaign.</p>
+    <div class="grid grid-2">
+      <div><label>Search</label><input id="q" placeholder="Type a name or email"/></div>
+      <div>
+        <label>Region (Province)</label>
+        <select id="region">
+          <option value="">All Regions</option>
+          <option value="Eastern Cape">Eastern Cape</option>
+          <option value="Free State">Free State</option>
+          <option value="Gauteng">Gauteng</option>
+          <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+          <option value="Limpopo">Limpopo</option>
+          <option value="Mpumalanga">Mpumalanga</option>
+          <option value="North West">North West</option>
+          <option value="Northern Cape">Northern Cape</option>
+          <option value="Western Cape">Western Cape</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex">
+      <button id="refreshBtn">Apply Filters</button>
+      <button id="clearBtn" class="secondary">Clear</button>
+      <span class="right small" id="count"></span>
+    </div>
+    <div class="table-wrap">
+      <table class="table" id="promoterTable">
+        <thead>
+          <tr><th>Name</th><th>Region</th><th>Email</th><th>SA ID</th><th>CV</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div id="detailOverlay" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="detailTitle">Promoter Details</h3>
+      <button class="close-x" data-close="detailOverlay">Close</button>
+    </div>
+    <div id="detailBody"></div>
+    <div class="modal-actions">
+      <button id="detailInviteBtn">Invite to Campaign</button>
+    </div>
+  </div>
+</div>
+
+<div id="inviteOverlay" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="inviteTitle">Invite to Campaign</h3>
+      <button class="close-x" data-close="inviteOverlay">Close</button>
+    </div>
+    <div id="inviteBody">
+      <div class="grid grid-2">
+        <div>
+          <label>Campaign</label>
+          <select id="inviteCampaign"></select>
+          <p class="small" id="inviteHint"></p>
+        </div>
+        <div>
+          <label>Message (optional)</label>
+          <textarea id="inviteMsg" rows="4" placeholder="Hi, we'd love you on this campaign…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="sendInviteBtn">Send Invite</button>
+    </div>
+  </div>
+</div>
+
+<footer class='footer'>© 2025 FindMe! · Made with ♥</footer>
+<script src='js/app.js'></script>
+<script>
+const me=getSession(); protect(me);
+if(!me||me.role!=='company'){ window.location.href='dashboard.html'; }
+document.getElementById('logoutBtn').addEventListener('click',logout);
+
+const q=document.getElementById('q');
+const regionSel=document.getElementById('region');
+const tbody=document.querySelector('#promoterTable tbody');
+const count=document.getElementById('count');
+
+function openOverlay(id){ document.getElementById(id).style.display='flex'; }
+function closeOverlay(id){ document.getElementById(id).style.display='none'; }
+document.body.addEventListener('click',(e)=>{
+  const closeId=e.target.getAttribute('data-close');
+  if(closeId) closeOverlay(closeId);
+});
+
+let selectedPromoter=null;
+
+function render(){
+  const query=q.value.trim().toLowerCase();
+  const region=regionSel.value;
+  const promoters=listPromoters().filter(p=>{
+    const matchQ=!query||(`${p.firstName||''} ${p.surname||''} ${p.email||''}`.toLowerCase().includes(query));
+    const matchR=!region||p.region===region;
+    return matchQ&&matchR;
+  });
+  tbody.innerHTML='';
+  promoters.forEach(p=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td data-label="Name">${p.firstName||''} ${p.surname||''}</td>
+      <td data-label="Region">${p.region||'-'}</td>
+      <td data-label="Email">${p.email||'-'}</td>
+      <td data-label="SA ID">${p.idNumber||'-'}</td>
+      <td data-label="CV">${p.cvName||'-'}</td>
+      <td data-label="Actions">
+        <button data-act="view" data-id="${p.id}">View</button>
+        <button class="secondary" data-act="invite" data-id="${p.id}">Invite</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  count.textContent=promoters.length+' promoter(s)';
+}
+
+tbody.addEventListener('click',(e)=>{
+  const act=e.target.getAttribute('data-act');
+  if(!act) return;
+  const pid=e.target.getAttribute('data-id');
+  const p=getUser(pid);
+  if(!p) return;
+  selectedPromoter=p;
+
+  if(act==='view'){
+    document.getElementById('detailTitle').textContent=`${p.firstName||''} ${p.surname||''}`.trim()||'Promoter Details';
+    document.getElementById('detailBody').innerHTML=`
+      <div class="grid grid-2">
+        <div><strong>Region:</strong><br>${p.region||'-'}</div>
+        <div><strong>Email:</strong><br>${p.email||'-'}</div>
+        <div><strong>SA ID:</strong><br>${p.idNumber||'-'}</div>
+        <div><strong>CV:</strong><br>${p.cvName||'-'}</div>
+      </div>`;
+    openOverlay('detailOverlay');
+  } else if(act==='invite'){
+    showInviteFor(p);
+  }
+});
+
+document.getElementById('detailInviteBtn').addEventListener('click',()=>{
+  if(selectedPromoter){ closeOverlay('detailOverlay'); showInviteFor(selectedPromoter); }
+});
+
+function showInviteFor(p){
+  selectedPromoter=p;
+  document.getElementById('inviteTitle').textContent='Invite ' + (p.firstName||'') + ' ' + (p.surname||'');
+  const sel=document.getElementById('inviteCampaign');
+  sel.innerHTML='';
+  const campaigns=listCampaigns().filter(c=>c.ownerId===me.id);
+  const same=campaigns.filter(c=>c.region===p.region);
+  const other=campaigns.filter(c=>c.region!==p.region);
+  const ordered=[...same,...other];
+  if(!ordered.length){
+    sel.innerHTML='<option value="">No campaigns yet — create one first.</option>';
+  } else {
+    ordered.forEach(c=>{
+      const opt=document.createElement('option');
+      opt.value=c.id;
+      opt.textContent=`${c.title} — ${c.region} (R ${c.budget})`;
+      sel.appendChild(opt);
+    });
+  }
+  document.getElementById('inviteHint').textContent = same.length ?
+    'Showing your campaigns (same region listed first).' :
+    'No same-region campaigns found; showing all your campaigns.';
+  document.getElementById('inviteMsg').value='';
+  openOverlay('inviteOverlay');
+}
+
+document.getElementById('sendInviteBtn').addEventListener('click',()=>{
+  const campId=document.getElementById('inviteCampaign').value;
+  const msg=document.getElementById('inviteMsg').value.trim();
+  if(!campId){ alert('Please select a campaign.'); return; }
+  sendInvite(me.id, selectedPromoter.id, campId, msg);
+  closeOverlay('inviteOverlay');
+  alert('Invite sent!');
+});
+
+document.getElementById('refreshBtn').addEventListener('click',render);
+document.getElementById('clearBtn').addEventListener('click',()=>{ q.value=''; regionSel.value=''; render(); });
+render();
+</script>
+</body></html>

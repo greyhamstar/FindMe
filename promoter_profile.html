@@ -1,18 +1,78 @@
 <!DOCTYPE html><html lang='en'><head>
-<meta charset='UTF-8'/><meta name='viewport' content='width=device-width, initial-scale=1.0'/>
+<meta charset='UTF-8'/>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover'/>
 <title>FindMe — Promoter Profile</title>
 <link rel='preconnect' href='https://fonts.googleapis.com'>
 <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
 <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'>
-<link rel='stylesheet' href='css/style.css'/></head><body><header class='header'><div class='logo'><div class='logo-mark'></div><div>FindMe!</div></div><nav class='nav'><a class='badge' href='dashboard.html'>Dashboard</a><button id='logoutBtn' class='badge secondary'>Logout</button></nav></header><main class='container'><div class='card'>
-<h1>Update Profile</h1><div id='msg'></div>
-<div class='grid grid-2'>
-  <div><label>First Name</label><input id='firstName'/></div>
-  <div><label>Surname</label><input id='surname'/></div>
-  <div><label>South African ID</label><input id='idNumber'/></div>
-  <div><label>Email</label><input id='email'/></div>
-  <div><label>CV File Name</label><input id='cvName'/></div>
-  <div><label>Region (Province)</label><select id='region'><option value='Eastern Cape'>Eastern Cape</option><option value='Free State'>Free State</option><option value='Gauteng'>Gauteng</option><option value='KwaZulu-Natal'>KwaZulu-Natal</option><option value='Limpopo'>Limpopo</option><option value='Mpumalanga'>Mpumalanga</option><option value='North West'>North West</option><option value='Northern Cape'>Northern Cape</option><option value='Western Cape'>Western Cape</option></select></div>
-</div>
-<div class='flex'><button id='saveBtn'>Save changes</button><a class='right' href='dashboard.html'>Back to Dashboard</a></div>
-</div></main><footer class='footer'>© 2025 FindMe! · Made with ♥</footer><script src='js/app.js'></script><script>const me=getSession();protect(me);if(me.role!=='promoter')window.location.href='dashboard.html';document.getElementById('logoutBtn').addEventListener('click',logout);document.getElementById('firstName').value=me.firstName||'';document.getElementById('surname').value=me.surname||'';document.getElementById('idNumber').value=me.idNumber||'';document.getElementById('email').value=me.email||'';document.getElementById('cvName').value=me.cvName||'';document.getElementById('region').value=me.region||'Gauteng';document.getElementById('saveBtn').addEventListener('click',()=>{const updated={...me,firstName:document.getElementById('firstName').value.trim(),surname:document.getElementById('surname').value.trim(),idNumber:document.getElementById('idNumber').value.trim(),email:document.getElementById('email').value.trim(),cvName:document.getElementById('cvName').value.trim(),region:document.getElementById('region').value,};updateUser(updated);setSession(updated);showMsg('Profile saved.','success');});</script></body></html>
+<link rel='stylesheet' href='css/style.css'/>
+</head><body>
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark"></div>
+    <div>FindMe!</div>
+  </div>
+  <button class="hamburger" id="navToggle" aria-label="Toggle menu">☰</button>
+  <nav class="nav">
+    
+  <a class="badge" href="dashboard.html">Dashboard</a>
+  <button id="logoutBtn" class="badge secondary">Logout</button>
+
+  </nav>
+</header>
+<main class="container">
+  <div class="card">
+    <h1>Update Profile</h1>
+    <div id="msg"></div>
+    <div class="grid grid-2">
+      <div><label>First Name</label><input id="firstName"/></div>
+      <div><label>Surname</label><input id="surname"/></div>
+      <div><label>South African ID</label><input id="idNumber"/></div>
+      <div><label>Email</label><input id="email"/></div>
+      <div><label>CV File Name</label><input id="cvName"/></div>
+      <div>
+        <label>Region (Province)</label>
+        <select id="region">
+          <option value="Eastern Cape">Eastern Cape</option>
+          <option value="Free State">Free State</option>
+          <option value="Gauteng">Gauteng</option>
+          <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+          <option value="Limpopo">Limpopo</option>
+          <option value="Mpumalanga">Mpumalanga</option>
+          <option value="North West">North West</option>
+          <option value="Northern Cape">Northern Cape</option>
+          <option value="Western Cape">Western Cape</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex">
+      <button id="saveBtn">Save changes</button>
+      <a class="right" href="dashboard.html">Back to Dashboard</a>
+    </div>
+  </div>
+</main>
+<footer class='footer'>© 2025 FindMe! · Made with ♥</footer>
+<script src='js/app.js'></script>
+<script>
+const me=getSession(); protect(me);
+if(me.role!=='promoter') window.location.href='dashboard.html';
+document.getElementById('logoutBtn').addEventListener('click',logout);
+document.getElementById('firstName').value=me.firstName||'';
+document.getElementById('surname').value=me.surname||'';
+document.getElementById('idNumber').value=me.idNumber||'';
+document.getElementById('email').value=me.email||'';
+document.getElementById('cvName').value=me.cvName||'';
+document.getElementById('region').value=me.region||'Gauteng';
+document.getElementById('saveBtn').addEventListener('click',()=>{
+  const updated={...me,
+    firstName:document.getElementById('firstName').value.trim(),
+    surname:document.getElementById('surname').value.trim(),
+    idNumber:document.getElementById('idNumber').value.trim(),
+    email:document.getElementById('email').value.trim(),
+    cvName:document.getElementById('cvName').value.trim(),
+    region:document.getElementById('region').value,
+  };
+  updateUser(updated); setSession(updated); showMsg('Profile saved.','success');
+});
+</script>
+</body></html>
