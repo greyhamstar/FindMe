@@ -1,50 +1,50 @@
-<!DOCTYPE html><html lang='en'><head>
-<meta charset='UTF-8'/>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover'/>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>FindMe — Log in</title>
-<link rel='preconnect' href='https://fonts.googleapis.com'>
-<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
-<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'>
-<link rel='icon' href='assets/logo.png' type='image/png'>
-<link rel='apple-touch-icon' href='assets/icon-192.png'>
-<link rel='manifest' href='site.webmanifest'>
-<link rel='stylesheet' href='css/style.css'/>
+<link rel="icon" href="assets/logo.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 </head><body>
-<header class="header">
-  <div class="logo">
-    <img class="logo-img" src="assets/logo.png" alt="FindMe logo" />
-    <div>FindMe!</div>
+<header class="hdr">
+  <div class="brand">
+    <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
+    <div class="brand-text">
+      <span class="brand-name">FindMe</span>
+      <span class="brand-tag">Campaign Staffing</span>
+    </div>
   </div>
-  <button class="hamburger" id="navToggle" aria-label="Toggle menu">☰</button>
-  <nav class="nav">
-    
-  <a class="badge" href="signup.html">Sign up</a>
-
-  </nav>
+  <div class="hdr-right">
+    <nav class="nav">
+  <a class="chip" href="signup.html">Sign up</a>
+</nav>
+    <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
+    <button id="themeToggle" class="btn-ghost" title="Toggle theme">☀︎ / 🌙</button>
+  </div>
 </header>
 <main class="container">
   <div class="card">
-    <h1>Welcome back</h1>
+    <h2 style="margin-top:0">Welcome back</h2>
     <p class="small">Enter your email and password to continue.</p>
     <div id="msg"></div>
     <div class="grid grid-2">
       <div><label>Email</label><input id="email" placeholder="you@example.com"></div>
       <div><label>Password</label><input id="password" type="password" placeholder="••••••••"></div>
     </div>
-    <div class="flex">
-      <button id="loginBtn">Log in</button>
-      <span class="right small">New here? <a href="signup.html">Create an account</a></span>
+    <div class="grid grid-2" style="margin-top:12px">
+      <button id="loginBtn" class="btn">Log in</button>
+      <a class="btn-ghost" href="signup.html">Create an account</a>
     </div>
   </div>
 </main>
-<footer class='footer'>© 2025 FindMe! · Made with ♥</footer>
-<script src='js/app.js'></script>
+<footer class='ftr'>© 2025 FindMe • All rights reserved</footer>
+<script src="js/app.js"></script>
 <script>
 document.getElementById('loginBtn').addEventListener('click',()=>{
-  const email=document.getElementById('email').value.trim();
-  const password=document.getElementById('password').value;
-  const user=findUserByEmail(email);
-  if(!user||user.password!==password){return showMsg('Invalid email or password.','error');}
+  const user=findUserByEmail(email.value.trim());
+  if(!user || user.password!==password.value){ return showMsg('Invalid email or password.','error'); }
   setSession(user); window.location.href='dashboard.html';
 });
 </script>

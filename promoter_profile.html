@@ -1,81 +1,96 @@
-<!DOCTYPE html><html lang='en'><head>
-<meta charset='UTF-8'/>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover'/>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>FindMe — Promoter Profile</title>
-<link rel='preconnect' href='https://fonts.googleapis.com'>
-<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
-<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'>
-<link rel='icon' href='assets/logo.png' type='image/png'>
-<link rel='apple-touch-icon' href='assets/icon-192.png'>
-<link rel='manifest' href='site.webmanifest'>
-<link rel='stylesheet' href='css/style.css'/>
+<link rel="icon" href="assets/logo.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 </head><body>
-<header class="header">
-  <div class="logo">
-    <img class="logo-img" src="assets/logo.png" alt="FindMe logo" />
-    <div>FindMe!</div>
+<header class="hdr">
+  <div class="brand">
+    <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
+    <div class="brand-text">
+      <span class="brand-name">FindMe</span>
+      <span class="brand-tag">Campaign Staffing</span>
+    </div>
   </div>
-  <button class="hamburger" id="navToggle" aria-label="Toggle menu">☰</button>
-  <nav class="nav">
-    
-  <a class="badge" href="dashboard.html">Dashboard</a>
-  <button id="logoutBtn" class="badge secondary">Logout</button>
-
-  </nav>
+  <div class="hdr-right">
+    <nav class="nav">
+  <a class="chip" href="dashboard.html">Dashboard</a>
+  <button id="logoutBtn" class="btn-ghost">Logout</button>
+</nav>
+    <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
+    <button id="themeToggle" class="btn-ghost" title="Toggle theme">☀︎ / 🌙</button>
+  </div>
 </header>
 <main class="container">
   <div class="card">
-    <h1>Update Profile</h1>
-    <div id="msg"></div>
+    <h2 style="margin-top:0">Update Profile</h2>
     <div class="grid grid-2">
-      <div><label>First Name</label><input id="firstName"/></div>
-      <div><label>Surname</label><input id="surname"/></div>
-      <div><label>South African ID</label><input id="idNumber"/></div>
-      <div><label>Email</label><input id="email"/></div>
-      <div><label>CV File Name</label><input id="cvName"/></div>
       <div>
-        <label>Region (Province)</label>
-        <select id="region">
-          <option value="Eastern Cape">Eastern Cape</option>
-          <option value="Free State">Free State</option>
-          <option value="Gauteng">Gauteng</option>
-          <option value="KwaZulu-Natal">KwaZulu-Natal</option>
-          <option value="Limpopo">Limpopo</option>
-          <option value="Mpumalanga">Mpumalanga</option>
-          <option value="North West">North West</option>
-          <option value="Northern Cape">Northern Cape</option>
-          <option value="Western Cape">Western Cape</option>
-        </select>
+        <div class="grid grid-2">
+          <div><label>First Name</label><input id="firstName"/></div>
+          <div><label>Surname</label><input id="surname"/></div>
+          <div><label>South African ID</label><input id="idNumber"/></div>
+          <div><label>Email</label><input id="email"/></div>
+          <div><label>CV File Name</label><input id="cvName"/></div>
+          <div><label>Region (Province)</label><select id="region"><option>Eastern Cape</option><option>Free State</option><option>Gauteng</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option><option>Western Cape</option></select></div>
+          <div><label>Ethnicity</label><select id="ethnicity"><option>Black</option><option>White</option><option>Indian</option><option>Coloured</option></select></div>
+          <div><label>Gender</label><select id="gender"><option>Male</option><option>Female</option></select></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Formal Picture</h3>
+        <div class="grid" style="grid-template-columns:160px 1fr">
+          <img id="photoPreview" class="avatar" src="assets/avatar-placeholder.svg" alt="Formal picture preview"/>
+          <div>
+            <p class="small">Upload a formal portrait (JPG/PNG/WebP). We resize on-device and store locally for this demo.</p>
+            <input id="photoInput" type="file" accept="image/*"/>
+            <div class="grid grid-2" style="margin-top:10px">
+              <button id="savePhotoBtn" class="btn">Save photo</button>
+              <button id="removePhotoBtn" class="btn-ghost">Remove photo</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="flex">
-      <button id="saveBtn">Save changes</button>
-      <a class="right" href="dashboard.html">Back to Dashboard</a>
+    <div class="grid grid-2" style="margin-top:14px">
+      <button id="saveBtn" class="btn">Save changes</button>
+      <a class="btn-ghost" href="dashboard.html">Back to Dashboard</a>
     </div>
+    <div id="msg"></div>
   </div>
 </main>
-<footer class='footer'>© 2025 FindMe! · Made with ♥</footer>
-<script src='js/app.js'></script>
+<footer class='ftr'>© 2025 FindMe • All rights reserved</footer>
+<script src="js/app.js"></script>
 <script>
 const me=getSession(); protect(me);
-if(me.role!=='promoter') window.location.href='dashboard.html';
-document.getElementById('logoutBtn').addEventListener('click',logout);
-document.getElementById('firstName').value=me.firstName||'';
-document.getElementById('surname').value=me.surname||'';
-document.getElementById('idNumber').value=me.idNumber||'';
-document.getElementById('email').value=me.email||'';
-document.getElementById('cvName').value=me.cvName||'';
-document.getElementById('region').value=me.region||'Gauteng';
+document.getElementById('logoutBtn').addEventListener('click', logout);
+firstName.value=me.firstName||''; surname.value=me.surname||''; idNumber.value=me.idNumber||''; email.value=me.email||''; cvName.value=me.cvName||''; region.value=me.region||'Gauteng'; ethnicity.value=me.ethnicity||'Black'; gender.value=me.gender||'Male';
+if(me.photoFormal){ document.getElementById('photoPreview').src=me.photoFormal; }
 document.getElementById('saveBtn').addEventListener('click',()=>{
-  const updated={...me,
-    firstName:document.getElementById('firstName').value.trim(),
-    surname:document.getElementById('surname').value.trim(),
-    idNumber:document.getElementById('idNumber').value.trim(),
-    email:document.getElementById('email').value.trim(),
-    cvName:document.getElementById('cvName').value.trim(),
-    region:document.getElementById('region').value,
-  };
+  const updated={...me, firstName:firstName.value.trim(), surname:surname.value.trim(), idNumber:idNumber.value.trim(), email:email.value.trim(), cvName:cvName.value.trim(), region:region.value, ethnicity:ethnicity.value, gender:gender.value};
   updateUser(updated); setSession(updated); showMsg('Profile saved.','success');
+});
+photoInput.addEventListener('change', async (e)=>{
+  const file=e.target.files?.[0]; if(!file) return;
+  const data=await resizeImageFile(file, 900, 0.9);
+  photoPreview.src=data; photoPreview.dataset.pending=data;
+});
+document.getElementById('savePhotoBtn').addEventListener('click',()=>{
+  const pending=photoPreview.dataset.pending||photoPreview.src;
+  if(!pending) return;
+  const updated={...getSession(), photoFormal: pending};
+  updateUser(updated); setSession(updated); showMsg('Formal picture saved.','success');
+  delete photoPreview.dataset.pending;
+});
+document.getElementById('removePhotoBtn').addEventListener('click',()=>{
+  const updated={...getSession()}; delete updated.photoFormal;
+  updateUser(updated); setSession(updated);
+  photoPreview.src='assets/avatar-placeholder.svg';
+  showMsg('Formal picture removed.','success');
 });
 </script>
 </body></html>

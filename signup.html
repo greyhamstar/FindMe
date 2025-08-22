@@ -1,81 +1,61 @@
-<!DOCTYPE html><html lang='en'><head>
-<meta charset='UTF-8'/>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover'/>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>FindMe — Sign up</title>
-<link rel='preconnect' href='https://fonts.googleapis.com'>
-<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
-<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'>
-<link rel='icon' href='assets/logo.png' type='image/png'>
-<link rel='apple-touch-icon' href='assets/icon-192.png'>
-<link rel='manifest' href='site.webmanifest'>
-<link rel='stylesheet' href='css/style.css'/>
+<link rel="icon" href="assets/logo.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 </head><body>
-<header class="header">
-  <div class="logo">
-    <img class="logo-img" src="assets/logo.png" alt="FindMe logo" />
-    <div>FindMe!</div>
+<header class="hdr">
+  <div class="brand">
+    <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
+    <div class="brand-text">
+      <span class="brand-name">FindMe</span>
+      <span class="brand-tag">Campaign Staffing</span>
+    </div>
   </div>
-  <button class="hamburger" id="navToggle" aria-label="Toggle menu">☰</button>
-  <nav class="nav">
-    
-  <a class="badge" href="login.html">Log in</a>
-
-  </nav>
+  <div class="hdr-right">
+    <nav class="nav">
+  <a class="chip" href="login.html">Log in</a>
+</nav>
+    <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
+    <button id="themeToggle" class="btn-ghost" title="Toggle theme">☀︎ / 🌙</button>
+  </div>
 </header>
 <main class="container">
   <div class="card">
-    <h1>Create an account</h1>
+    <h2 style="margin-top:0">Create an account</h2>
     <p class="small">LocalStorage demo for quick testing.</p>
     <div id="msg"></div>
     <div class="grid grid-2">
-      <div>
-        <label>Role</label>
-        <select id="role">
-          <option value="promoter">Promoter</option>
-          <option value="company">Company</option>
-        </select>
-      </div>
-      <div>
-        <label>Region (Province)</label>
-        <select id="region">
-          <option value="Eastern Cape">Eastern Cape</option>
-          <option value="Free State">Free State</option>
-          <option value="Gauteng">Gauteng</option>
-          <option value="KwaZulu-Natal">KwaZulu-Natal</option>
-          <option value="Limpopo">Limpopo</option>
-          <option value="Mpumalanga">Mpumalanga</option>
-          <option value="North West">North West</option>
-          <option value="Northern Cape">Northern Cape</option>
-          <option value="Western Cape">Western Cape</option>
-        </select>
-      </div>
+      <div><label>Role</label><select id="role"><option value="promoter">Promoter</option><option value="company">Company</option></select></div>
+      <div><label>Region (Province)</label><select id="region"><option>Eastern Cape</option><option>Free State</option><option>Gauteng</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option><option>Western Cape</option></select></div>
     </div>
-
-    <div id="promoterFields" class="grid grid-2">
+    <div id="promoterFields" class="grid grid-2" style="margin-top:6px">
       <div><label>First Name</label><input id="firstName" placeholder="John"/></div>
       <div><label>Surname</label><input id="surname" placeholder="Doe"/></div>
       <div><label>South African ID</label><input id="idNumber" placeholder="0000000000000"/></div>
       <div><label>Email</label><input id="email" placeholder="john@example.com"/></div>
-      <div class="grid-2" style="grid-column:1 / -1;">
-        <div><label>CV File Name</label><input id="cvName" placeholder="john_cv.pdf"/></div>
-        <div><label>Password</label><input id="password" type="password" placeholder="••••••••"/></div>
-      </div>
+      <div><label>CV File Name</label><input id="cvName" placeholder="john_cv.pdf"/></div>
+      <div><label>Password</label><input id="password" type="password" placeholder="••••••••"/></div>
+      <div><label>Ethnicity</label><select id="ethnicity"><option value="">Select...</option><option>Black</option><option>White</option><option>Indian</option><option>Coloured</option></select></div>
+      <div><label>Gender</label><select id="gender"><option value="">Select...</option><option>Male</option><option>Female</option></select></div>
     </div>
-
-    <div id="companyFields" class="grid grid-2 hidden">
+    <div id="companyFields" class="grid grid-2 hidden" style="margin-top:6px">
       <div><label>Company Name</label><input id="companyName" placeholder="Acme Ltd"/></div>
       <div><label>Company Email</label><input id="companyEmail" placeholder="hr@acme.com"/></div>
-      <div style="grid-column:1 / -1;"><label>Password</label><input id="companyPassword" type="password" placeholder="••••••••"/></div>
+      <div style="grid-column:1/-1"><label>Password</label><input id="companyPassword" type="password" placeholder="••••••••"/></div>
     </div>
-
-    <div class="flex">
-      <button id="createBtn">Create account</button>
-      <span class="right small">Already have an account? <a href="login.html">Log in</a></span>
+    <div class="grid grid-2" style="margin-top:12px">
+      <button id="createBtn" class="btn">Create account</button>
+      <a class="btn-ghost" href="login.html">I already have an account</a>
     </div>
   </div>
 </main>
-<footer class='footer'>© 2025 FindMe! · Made with ♥</footer>
-<script src='js/app.js'></script>
+<footer class='ftr'>© 2025 FindMe • All rights reserved</footer>
+<script src="js/app.js"></script>
 <script>
 const roleSel=document.getElementById('role');
 const promoterFields=document.getElementById('promoterFields');
@@ -86,26 +66,14 @@ roleSel.addEventListener('change',()=>{
   companyFields.classList.toggle('hidden',isPromoter);
 });
 document.getElementById('createBtn').addEventListener('click',()=>{
-  const role=roleSel.value;
-  const region=document.getElementById('region').value;
+  const role=roleSel.value, region=document.getElementById('region').value;
   let user;
   if(role==='promoter'){
-    user={id:crypto.randomUUID(),role,region,
-      firstName:document.getElementById('firstName').value.trim(),
-      surname:document.getElementById('surname').value.trim(),
-      idNumber:document.getElementById('idNumber').value.trim(),
-      email:document.getElementById('email').value.trim(),
-      cvName:document.getElementById('cvName').value.trim(),
-      password:document.getElementById('password').value,createdAt:Date.now()};
-    if(!user.firstName||!user.surname||!user.idNumber||!user.email||!user.password)
-      return showMsg('Please fill all promoter fields.','error');
+    user={id:crypto.randomUUID(),role,region,firstName:firstName.value.trim(),surname:surname.value.trim(),idNumber:idNumber.value.trim(),email:email.value.trim(),cvName:cvName.value.trim(),password:password.value,createdAt:Date.now(),photoFormal:'',ethnicity:ethnicity.value,gender:gender.value};
+    if(!user.firstName||!user.surname||!user.idNumber||!user.email||!user.password||!user.ethnicity||!user.gender) return showMsg('Please fill all promoter fields (incl. Ethnicity & Gender).','error');
   } else {
-    user={id:crypto.randomUUID(),role,region,
-      companyName:document.getElementById('companyName').value.trim(),
-      email:document.getElementById('companyEmail').value.trim(),
-      password:document.getElementById('companyPassword').value,createdAt:Date.now()};
-    if(!user.companyName||!user.email||!user.password)
-      return showMsg('Please fill all company fields.','error');
+    user={id:crypto.randomUUID(),role,region,companyName:companyName.value.trim(),email:companyEmail.value.trim(),password:companyPassword.value,createdAt:Date.now()};
+    if(!user.companyName||!user.email||!user.password) return showMsg('Please fill all company fields.','error');
   }
   saveUser(user); setSession(user); window.location.href='dashboard.html';
 });
