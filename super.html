@@ -1,0 +1,165 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FindMe — Super Admin</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head><body>
+<header class="hdr">
+  <div class="brand">
+    <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
+    <div class="brand-text">
+      <span class="brand-name">FindMe</span>
+      <span class="brand-tag">Campaign Staffing</span>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <nav class="nav">
+      <a class="chip" href="dashboard.html">Dashboard</a>
+      <a class="chip" id="navSuper" href="super.html">Super</a>
+      <button id="logoutBtn" class="btn-ghost">Logout</button>
+    </nav>
+    <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
+  </div>
+</header>
+<main class="container">
+  <div class="card">
+    <h2 style="margin-top:0">Super Admin — Monthly Hires Report</h2>
+    <p class="small">This page is for the Super user only. Choose a month to see all promoters hired and which companies hired them, then export to Excel (CSV).</p>
+    <div class="grid grid-3" style="align-items:end">
+      <div>
+        <label>Month</label>
+        <input type="month" id="monthPicker">
+      </div>
+      <div>
+        <label>Region (optional)</label>
+        <select id="region"><option value="">All Regions</option><option>Eastern Cape</option><option>Free State</option><option>Gauteng</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option><option>Western Cape</option></select>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr auto;gap:10px">
+        <button id="refreshBtn" class="btn">Run Report</button>
+        <button id="exportBtn" class="btn-ghost">Export CSV</button>
+      </div>
+    </div>
+    <div class="table-wrap" style="margin-top:14px">
+      <table class="table" id="reportTable">
+        <thead><tr><th>Promoter</th><th>Email</th><th>Region</th><th>Hires</th><th>Companies</th><th>Campaigns</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="msg"></div>
+  </div>
+</main>
+<footer class='ftr'>© 2025 FindMe • All rights reserved</footer>
+<script type="module">
+import { onAuth, signOut, getUserDoc } from './js/offline.js';
+document.getElementById('logoutBtn').addEventListener('click', ()=>signOut().then(()=>location.href='login.html'));
+document.addEventListener('click',e=>{ if(e.target?.id==='navToggle'){document.querySelector('.nav')?.classList.toggle('open')} if(e.target?.closest('.nav')&&e.target.tagName==='A'){document.querySelector('.nav')?.classList.remove('open')} });
+
+onAuth(async (u)=>{
+  if(!u){ location.href='login.html'; return; }
+  const me = await getUserDoc(u.id||u);
+  if(me?.role!=='super'){ alert('Super access only'); location.href='dashboard.html'; }
+  const m=document.getElementById('monthPicker');
+  if(!m.value){
+    const d=new Date(); const mm=String(d.getMonth()+1).padStart(2,'0'); m.value = d.getFullYear()+'-'+mm;
+  }
+  runReport();
+});
+
+import { listPromoters } from './js/offline.js';
+// We'll read DB directly for apps/campaigns/companies through window.localStorage since offline.js doesn't export low-level getters.
+function parseLS(k, def){ try{ return JSON.parse(localStorage.getItem(k) ?? JSON.stringify(def)); }catch{return def;} }
+
+function monthRange(ym){
+  const [y,m]=ym.split('-').map(Number);
+  const start = new Date(y, m-1, 1, 0, 0, 0);
+  const end = new Date(y, m, 1, 0, 0, 0); // first of next month
+  return {start, end};
+}
+function inRange(iso, {start,end}){
+  const t = new Date(iso||0).getTime();
+  return t>=start.getTime() && t<end.getTime();
+}
+
+async function runReport(){
+  const ym = document.getElementById('monthPicker').value;
+  const region = document.getElementById('region').value;
+  const range = monthRange(ym);
+  const apps = parseLS('fm_apps', []);
+  const campaigns = parseLS('fm_campaigns', []);
+  const users = parseLS('fm_users', []);
+  const companies = users.filter(u=>u.role==='company');
+  const proms = await listPromoters();
+  const byId = Object.fromEntries(users.map(u=>[u.id,u]));
+  const campById = Object.fromEntries(campaigns.map(c=>[c.id,c]));
+
+  // accepted apps in month (use updatedAt if present; else createdAt)
+  const accepted = apps.filter(a=> (a.status==='accepted') && inRange(a.updatedAt||a.createdAt, range));
+
+  // group by promoter
+  const map = new Map();
+  accepted.forEach(a=>{
+    const p = byId[a.promoterId]; if(!p) return;
+    if(region && p.region!==region) return;
+    const c = campById[a.campaignId]; if(!c) return;
+    const company = byId[c.ownerId];
+    if(!map.has(a.promoterId)){
+      map.set(a.promoterId, { promoter:p, hires:0, companies:new Set(), campaigns:new Set() });
+    }
+    const item = map.get(a.promoterId);
+    item.hires += 1;
+    if(company) item.companies.add(company.companyName||company.email);
+    if(c) item.campaigns.add(c.title||c.id);
+  });
+
+  const rows = Array.from(map.values()).sort((a,b)=> b.hires - a.hires || (a.promoter.firstName||'').localeCompare(b.promoter.firstName||''));
+
+  // render table
+  const tbody = document.querySelector('#reportTable tbody'); tbody.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    const comps=[...r.companies].join('; ');
+    const camps=[...r.campaigns].join('; ');
+    tr.innerHTML = `<td data-label="Promoter">${(r.promoter.firstName||'')+' '+(r.promoter.surname||'')}</td>
+                    <td data-label="Email">${r.promoter.email||'-'}</td>
+                    <td data-label="Region">${r.promoter.region||'-'}</td>
+                    <td data-label="Hires"><span class="chip success">${r.hires}</span></td>
+                    <td data-label="Companies">${comps||'-'}</td>
+                    <td data-label="Campaigns">${camps||'-'}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // wire export
+  document.getElementById('exportBtn').onclick = ()=>{
+    const header = ['Promoter','Email','Region','Hires','Companies','Campaigns'];
+    const lines = [header.join(',')];
+    rows.forEach(r=>{
+      const comps=[...r.companies].join(' / ');
+      const camps=[...r.campaigns].join(' / ');
+      const vals = [
+        ((r.promoter.firstName||'')+' '+(r.promoter.surname||'')),
+        (r.promoter.email||''),
+        (r.promoter.region||''),
+        String(r.hires),
+        comps,
+        camps
+      ];
+      const safe = vals.map(v=> '"'+String(v).replace(/"/g,'""')+'"');
+      lines.push(safe.join(','));
+    });
+    const csv = lines.join('\r\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const ymFile = (ym||'report').replace(/[^0-9\-]/g,'');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `findme_hires_${ymFile}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  };
+}
+
+document.getElementById('refreshBtn').addEventListener('click', runReport);
+</script>
+</body></html>

@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FindMe — Browse Promoters</title>
+<title>FindMe — Browse Promoters (Offline)</title>
 <link rel="icon" href="assets/logo.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <link rel="manifest" href="site.webmanifest">
@@ -19,16 +19,16 @@
   <div class="hdr-right">
     <nav class="nav">
   <a class="chip" href="dashboard.html">Dashboard</a>
+  <a class="chip" id="navSuper" href="super.html">Super</a>
   <button id="logoutBtn" class="btn-ghost">Logout</button>
 </nav>
     <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
-    <button id="themeToggle" class="btn-ghost" title="Toggle theme">☀︎ / 🌙</button>
   </div>
 </header>
 <main class="container">
   <div class="card">
     <h2 style="margin-top:0">Browse Promoters</h2>
-    <p class="small">Filter by name/email and province. Click <em>View</em> for details or <em>Invite</em> to a campaign.</p>
+    <p class="small">Filter by name/email and province. Click <em>View</em> for full profile or <em>Invite</em> to a campaign.</p>
     <div class="grid grid-3">
       <div><label>Search</label><input id="q" placeholder="Type a name or email"/></div>
       <div><label>Region (Province)</label><select id="region"><option value="">All Regions</option><option>Eastern Cape</option><option>Free State</option><option>Gauteng</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option><option>Western Cape</option></select></div>
@@ -53,21 +53,82 @@
   <div class="grid" style="grid-template-columns:1fr auto; margin-top:12px"><span></span><button id="sendInviteBtn" class="btn">Send Invite</button></div>
 </div></div>
 <footer class='ftr'>© 2025 FindMe • All rights reserved</footer>
-<script src="js/app.js"></script>
-<script>
-const me=getSession(); protect(me);
-if(!me||me.role!=='company'){ window.location.href='dashboard.html'; }
-document.getElementById('logoutBtn').addEventListener('click', logout);
+<script type="module">
+import { onAuth, signOut, listPromoters, getUserDoc, listCampaignsByOwner, sendInvite } from './js/offline.js';
+document.getElementById('logoutBtn').addEventListener('click', ()=>signOut().then(()=>location.href='login.html'));
 const q=document.getElementById('q'), regionSel=document.getElementById('region'), tbody=document.querySelector('#promoterTable tbody');
 const count=document.createElement('div'); count.className='small'; count.style.marginTop='8px'; document.querySelector('.card').appendChild(count);
 function openOverlay(id){ document.getElementById(id).style.display='flex'; } function closeOverlay(id){ document.getElementById(id).style.display='none'; }
 document.body.addEventListener('click',(e)=>{ const id=e.target.getAttribute('data-close'); if(id) closeOverlay(id); });
-let selected=null;
-function render(){ const query=q.value.trim().toLowerCase(), r=regionSel.value; const items=listPromoters().filter(p=>{ const mt=!query||(`${p.firstName||''} ${p.surname||''} ${p.email||''}`.toLowerCase().includes(query)); const mr=!r||p.region===r; return mt&&mr; }); tbody.innerHTML=''; items.forEach(p=>{ const img=p.photoFormal?`<img class="avatar-sm" src="${p.photoFormal}" alt="avatar">`:`<img class="avatar-sm" src="assets/avatar-placeholder.svg" alt="avatar">`; const tr=document.createElement('tr'); tr.innerHTML=`<td data-label="">${img}</td><td data-label="Name">${p.firstName||''} ${p.surname||''}<div class="small">${p.ethnicity||''} • ${p.gender||''}</div></td><td data-label="Region">${p.region||'-'}</td><td data-label="Email">${p.email||'-'}</td><td data-label="SA ID">${p.idNumber||'-'}</td><td data-label="CV">${p.cvName||'-'}</td><td data-label="Actions"><button class="btn" data-a="view" data-id="${p.id}">View</button> <button class="btn-ghost" data-a="invite" data-id="${p.id}">Invite</button></td>`; tbody.appendChild(tr); }); count.textContent=items.length+' promoter(s)'; }
-tbody.addEventListener('click',e=>{ const a=e.target.getAttribute('data-a'); if(!a) return; const id=e.target.getAttribute('data-id'); const p=getUser(id); if(!p) return; selected=p; if(a==='view'){ detailTitle.textContent=`${p.firstName||''} ${p.surname||''}`.trim()||'Promoter Details'; const photo=p.photoFormal?`<img class="avatar" src="${p.photoFormal}" style="width:120px;height:120px;border-radius:14px;margin-bottom:10px" />`:''; detailBody.innerHTML=`${photo}<div class="grid grid-2"><div><strong>Region</strong><br>${p.region||'-'}</div><div><strong>Email</strong><br>${p.email||'-'}</div><div><strong>SA ID</strong><br>${p.idNumber||'-'}</div><div><strong>CV</strong><br>${p.cvName||'-'}</div><div><strong>Ethnicity</strong><br>${p.ethnicity||'-'}</div><div><strong>Gender</strong><br>${p.gender||'-'}</div></div>`; openOverlay('detailOverlay'); } else if(a==='invite'){ showInvite(p); }});
-detailInviteBtn.addEventListener('click',()=>{ if(selected){ closeOverlay('detailOverlay'); showInvite(selected); } });
-function showInvite(p){ selected=p; inviteTitle.textContent='Invite '+(p.firstName||'')+' '+(p.surname||''); const sel=inviteCampaign; sel.innerHTML=''; const c=listCampaigns().filter(x=>x.ownerId===me.id); const same=c.filter(x=>x.region===p.region), other=c.filter(x=>x.region!==p.region); const ordered=[...same,...other]; if(!ordered.length){ sel.innerHTML='<option value="">No campaigns — create one first.</option>'; } else { ordered.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=`${x.title} — ${x.region} (R ${x.budget})`; sel.appendChild(o); }); } inviteHint.textContent=same.length?'Same-region campaigns first.':'No same-region campaigns found.'; inviteMsg.value=''; openOverlay('inviteOverlay'); }
-sendInviteBtn.addEventListener('click',()=>{ const cid=inviteCampaign.value, msg=inviteMsg.value.trim(); if(!cid) return alert('Select a campaign'); sendInvite(me.id, selected.id, cid, msg); closeOverlay('inviteOverlay'); alert('Invite sent!'); });
-refreshBtn.addEventListener('click',render); clearBtn.addEventListener('click',()=>{ q.value=''; region.value=''; render(); }); render();
+let me=null, selected=null, myCampaigns=[];
+onAuth(async (u)=>{
+  if(!u){ location.href='login.html'; return; }
+  me = await getUserDoc(u.id);
+  if(me.role!=='company'){ location.href='dashboard.html'; return; }
+  myCampaigns = await listCampaignsByOwner(u.id);
+  render();
+});
+async function render(){
+  const all=await listPromoters();
+  const query=(q.value||'').toLowerCase(); const region=regionSel.value;
+  const items=all.filter(p=>{ const mt=!query||(`${p.firstName||''} ${p.surname||''} ${p.email||''}`.toLowerCase().includes(query)); const mr=!region||p.region===region; return mt&&mr; });
+  tbody.innerHTML='';
+  items.forEach(p=>{
+    const img=p.photoFormal?`<img class="avatar-sm" src="${p.photoFormal}" alt="avatar">`:`<img class="avatar-sm" src="assets/icon-192.png" alt="avatar">`;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td data-label="">${img}</td><td data-label="Name">${p.firstName||''} ${p.surname||''}<div class="small">${p.ethnicity||''} • ${p.gender||''}</div></td><td data-label="Region">${p.region||'-'}</td><td data-label="Email">${p.email||'-'}</td><td data-label="SA ID">${p.idNumber||'-'}</td><td data-label="CV">${p.cvName||'-'}</td><td data-label="Actions"><button class="btn" data-a="view" data-id="${p.id}">View</button> <button class="btn-ghost" data-a="invite" data-id="${p.id}">Invite</button></td>`;
+    tbody.appendChild(tr);
+  });
+  count.textContent=items.length+' promoter(s)';
+}
+tbody.addEventListener('click', async (e)=>{
+  const a=e.target.getAttribute('data-a'); if(!a) return; const id=e.target.getAttribute('data-id');
+  selected={ id, name:'' };
+  const p = await getUserDoc(id);
+  selected.name = ((p?.firstName||'')+' '+(p?.surname||'')).trim();
+  if(a==='view'){
+    detailTitle.textContent=selected.name||'Promoter Details';
+    const img=p?.photoFormal?`<img class="avatar" src="${p.photoFormal}" alt="avatar" style="width:120px;height:120px">`:`<img class="avatar" src="assets/icon-192.png" alt="avatar" style="width:120px;height:120px">`;
+    detailBody.innerHTML=`
+      <div class="grid grid-2">
+        <div>${img}</div>
+        <div>
+          <div><strong>Name:</strong> ${p?.firstName||''} ${p?.surname||''}</div>
+          <div><strong>Region:</strong> ${p?.region||'-'}</div>
+          <div><strong>Email:</strong> ${p?.email||'-'}</div>
+          <div><strong>SA ID:</strong> ${p?.idNumber||'-'}</div>
+          <div><strong>Ethnicity:</strong> ${p?.ethnicity||'-'}</div>
+          <div><strong>Gender:</strong> ${p?.gender||'-'}</div>
+          <div><strong>CV:</strong> ${p?.cvName||'-'}</div>
+        </div>
+      </div>`;
+    openOverlay('detailOverlay');
+  } else if(a==='invite'){ showInvite(); }
+});
+detailInviteBtn.addEventListener('click',()=>{ if(selected){ closeOverlay('detailOverlay'); showInvite(); } });
+function showInvite(){
+  inviteTitle.textContent='Invite '+(selected?.name||'');
+  const sel=inviteCampaign; sel.innerHTML='';
+  if(!myCampaigns.length){ sel.innerHTML='<option value="">No campaigns — create one first.</option>'; }
+  else { myCampaigns.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=`${c.title} — ${c.region} (R ${c.budget})`; sel.appendChild(o); }); }
+  inviteHint.textContent=myCampaigns.length?'Select a campaign to invite.':'No campaigns found.'; inviteMsg.value='';
+  openOverlay('inviteOverlay');
+}
+sendInviteBtn.addEventListener('click', async ()=>{
+  const cid=inviteCampaign.value, msg=inviteMsg.value.trim();
+  if(!cid) return alert('Select a campaign');
+  await sendInvite({ companyId: me.id, promoterId: selected.id, campaignId: cid, message: msg });
+  closeOverlay('inviteOverlay'); alert('Invite sent!');
+});
+refreshBtn.addEventListener('click',render); clearBtn.addEventListener('click',()=>{ q.value=''; region.value=''; render(); });
+</script>
+<script>document.addEventListener('click',e=>{if(e.target?.id==='navToggle'){document.querySelector('.nav')?.classList.toggle('open')}if(e.target?.closest('.nav')&&e.target.tagName==='A'){document.querySelector('.nav')?.classList.remove('open')}});</script>
+<script type="module">
+import { onAuth, getUserDoc } from './js/offline.js';
+onAuth(async (u)=>{
+  const link=document.getElementById('navSuper'); if(!link) return;
+  const you = u ? await getUserDoc(u.id||u) : null;
+  link.style.display = (you && you.role==='super') ? 'inline-flex' : 'none';
+});
 </script>
 </body></html>

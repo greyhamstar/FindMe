@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FindMe — Home</title>
+<title>FindMe — Home (Offline)</title>
 <link rel="icon" href="assets/logo.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <link rel="manifest" href="site.webmanifest">
@@ -23,17 +23,25 @@
   <a class="chip" href="dashboard.html">Dashboard</a>
 </nav>
     <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
-    <button id="themeToggle" class="btn-ghost" title="Toggle theme">☀︎ / 🌙</button>
   </div>
 </header>
 <main class="container">
   <section class="hero">
-    <h1>Beautiful, fast staffing for your campaigns.</h1>
-    <p>Find qualified promoters by province, send invites, and track applications — clean light UI (with dark mode too).</p>
+    <h1>Find promoters. Staff campaigns. Simple.</h1>
+    <p>Offline demo build — no internet or Firebase needed. Data is stored locally in your browser (LocalStorage).</p>
     <div class="grid grid-2" style="margin-top:14px">
       <a class="btn" href="signup.html">Create an account</a>
       <a class="btn-ghost" href="login.html">I already have an account</a>
     </div>
   </section>
 </main>
-<footer class='ftr'>© 2025 FindMe • All rights reserved</footer></body></html>
+<footer class='ftr'>© 2025 FindMe • All rights reserved</footer><script>document.addEventListener('click',e=>{if(e.target?.id==='navToggle'){document.querySelector('.nav')?.classList.toggle('open')}if(e.target?.closest('.nav')&&e.target.tagName==='A'){document.querySelector('.nav')?.classList.remove('open')}});</script>
+<script type="module">
+import { onAuth, getUserDoc } from './js/offline.js';
+onAuth(async (u)=>{
+  const link=document.getElementById('navSuper'); if(!link) return;
+  const you = u ? await getUserDoc(u.id||u) : null;
+  link.style.display = (you && you.role==='super') ? 'inline-flex' : 'none';
+});
+</script>
+</body></html>

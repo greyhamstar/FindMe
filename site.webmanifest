@@ -1,5 +1,5 @@
 {
-  "name": "FindMe",
+  "name": "FindMe Offline",
   "short_name": "FindMe",
   "icons": [
     {
@@ -13,7 +13,7 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#f5f7ff",
-  "background_color": "#f5f7ff",
+  "theme_color": "#f7f9ff",
+  "background_color": "#f7f9ff",
   "display": "standalone"
 }
