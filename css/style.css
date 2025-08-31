@@ -93,3 +93,24 @@ textarea{min-height:90px;resize:vertical}
   #mainNav:not(.open) #navUser { display: none !important; }
 }
 
+
+
+/* === Mobile burger: v4 with FAB fallback & strict resets === */
+.nav-fab { 
+  display:none; position:fixed; right:14px; bottom:14px; z-index:1002;
+  border-radius:999px; padding:12px 14px; border:1px solid rgba(0,0,0,.2); background:#fff; font-size:20px;
+  box-shadow:0 4px 16px rgba(0,0,0,.15);
+}
+@media (max-width: 900px){
+  #mainNav { display:flex; gap:8px; align-items:center; flex-wrap:wrap; position:relative; z-index:1000; }
+  #mainNav .nav-toggle { display:inline-flex; align-items:center; justify-content:center; z-index:1001; }
+  #mainNav .nav-items { display:none; width:100%; padding-top:6px; }
+  #mainNav.open .nav-items { display:block !important; }
+  /* Force children visible when open */
+  #mainNav.open .nav-items *, #mainNav.open #navUser { display: block !important; }
+  /* Close state: hide children */
+  #mainNav:not(.open) .nav-items *, #mainNav:not(.open) #navUser { display: none !important; }
+  /* Show FAB fallback on small screens */
+  .nav-fab { display:inline-flex; }
+}
+

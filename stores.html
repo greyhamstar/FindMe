@@ -187,6 +187,55 @@ import { listStoresByOwner, saveStore, currentUser } from './js/offline.js';
   }
 })();
 </script>
+
+<script>
+// burger binder v4 + diagnostics + FAB fallback
+(function(){
+  var nav = document.getElementById('mainNav');
+  var btn = document.getElementById('navToggle');
+  // Insert FAB fallback if missing
+  var fab = document.getElementById('navFab');
+  if(!fab){
+    fab = document.createElement('button');
+    fab.id = 'navFab';
+    fab.className = 'nav-fab';
+    fab.setAttribute('aria-label','Menu');
+    fab.textContent = '☰';
+    document.body.appendChild(fab);
+  }
+  function toggleNav(){
+    if(!nav) return;
+    var isOpen = nav.classList.toggle('open');
+    if(btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    console.debug('[burger] toggle ->', isOpen);
+  }
+  function closeNav(){
+    if(!nav) return;
+    nav.classList.remove('open');
+    if(btn) btn.setAttribute('aria-expanded', 'false');
+  }
+  // Guard against duplicate binding
+  if(btn && !btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', toggleNav); }
+  if(fab && !fab.dataset.bnd){ fab.dataset.bnd='1'; fab.addEventListener('click', toggleNav); }
+  // Close on link tap
+  var items = nav && nav.querySelector('.nav-items');
+  if(items && !items.dataset.bnd){
+    items.dataset.bnd = '1';
+    items.addEventListener('click', function(e){
+      if(e.target.tagName === 'A' || (e.target.closest && e.target.closest('a'))){ closeNav(); }
+    });
+  }
+  // Start closed on small screens
+  try {
+    if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches){
+      closeNav();
+    }
+  } catch(e){}
+  // Diagnostics
+  console.debug('[burger] ready', { hasNav: !!nav, hasBtn: !!btn, hasFab: !!fab });
+})();
+</script>
+
 </body></html>
 
 

@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Mobile Nav Test</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="container">
+  <nav id="mainNav" class="nav">
+    <button id="navToggle" class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">☰</button>
+    <div class="nav-items">
+      <a class="chip" href="dashboard.html">Dashboard</a>
+      <a class="chip" href="promoters.html">Promoters</a>
+      <a class="chip" href="stores.html">Stores</a>
+      <a class="chip" href="post_campaign.html">Post Campaign</a>
+      <a class="chip" href="super.html">Super</a>
+    </div>
+  </nav>
+</header>
+<main class="container">
+  <h1>Mobile Nav Test</h1>
+  <p>If you can open/close the menu here on your phone, the burger system is working. If it doesn't open, tap the floating button (bottom-right).</p>
+</main>
+<script>
+// burger binder v4 + diagnostics + FAB fallback
+(function(){
+  var nav = document.getElementById('mainNav');
+  var btn = document.getElementById('navToggle');
+  var fab = document.getElementById('navFab');
+  if(!fab){
+    fab = document.createElement('button'); fab.id='navFab'; fab.className='nav-fab'; fab.setAttribute('aria-label','Menu'); fab.textContent='☰'; document.body.appendChild(fab);
+  }
+  function toggleNav(){ var isOpen = nav.classList.toggle('open'); if(btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false'); console.debug('[burger-test] toggle ->', isOpen); }
+  function closeNav(){ nav.classList.remove('open'); if(btn) btn.setAttribute('aria-expanded','false'); }
+  if(btn && !btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', toggleNav); }
+  if(fab && !fab.dataset.bnd){ fab.dataset.bnd='1'; fab.addEventListener('click', toggleNav); }
+  var items = nav && nav.querySelector('.nav-items');
+  if(items && !items.dataset.bnd){ items.dataset.bnd='1'; items.addEventListener('click', function(e){ if(e.target.tagName==='A' || (e.target.closest && e.target.closest('a'))){ closeNav(); } }); }
+  if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches){ closeNav(); }
+  console.debug('[burger-test] ready', { hasNav: !!nav, hasBtn: !!btn, hasFab: !!fab });
+})();
+</script>
+</body></html>
