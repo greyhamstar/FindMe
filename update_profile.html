@@ -144,7 +144,38 @@ function toast(msg, ok=true){ const el=document.getElementById('toast'); if(!el)
   }
 })();
 </script>
+
+<script>
+// mobile nav toggle binder v3
+(function(){
+  var nav = document.getElementById('mainNav');
+  var btn = document.getElementById('navToggle');
+  if(!nav || !btn) return;
+  if(!btn.dataset.bnd){
+    btn.dataset.bnd = '1';
+    btn.addEventListener('click', function(){
+      var isOpen = nav.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+    var items = nav.querySelector('.nav-items');
+    if(items){
+      items.addEventListener('click', function(e){
+        var target = e.target;
+        if(target.tagName === 'A' || target.closest('a')){
+          nav.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+    if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches){
+      nav.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+  }
+})();
+</script>
 </body></html>
+
 
 
 

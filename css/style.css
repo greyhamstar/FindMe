@@ -56,13 +56,40 @@ textarea{min-height:90px;resize:vertical}
 .notice{padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff8e1}
 .error{padding:10px 12px;border:1px solid #ffd3d6;border-radius:10px;background:#fff1f3;color:#8a1320}
 
-
 /* Toast */
-.toast { 
-  position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
-  padding: 10px 14px; background: #111; color: #fff; border-radius: 999px;
-  opacity: 0; pointer-events: none; transition: opacity .2s ease-in-out;
-  z-index: 9999;
+.toast { position: fixed; left:50%; bottom:18px; transform:translateX(-50%); padding:10px 14px; background:#111; color:#fff; border-radius:999px; opacity:0; pointer-events:none; transition:opacity .2s; z-index:9999; }
+.toast.show { opacity:.95; }
+/* Mobile burger nav */
+.nav-toggle { display:none; background:transparent; border:1px solid rgba(0,0,0,.2); padding:6px 10px; border-radius:10px; font-size:18px; line-height:1; }
+@media (max-width:800px){ .nav{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; } .nav-toggle{ display:inline-flex; align-items:center; justify-content:center; } .nav:not(.open) a.chip, .nav:not(.open) a, .nav:not(.open) button:not(.nav-toggle), .nav:not(.open) #navUser { display:none !important; } .nav.open{ display:block; } }
+
+
+/* === Mobile burger nav (hardened) === */
+.nav-toggle { display:none; background:transparent; border:1px solid rgba(0,0,0,.2); padding:6px 10px; border-radius:10px; font-size:20px; line-height:1; }
+@media (max-width: 900px){
+  header, .nav { position: relative; }
+  .nav-toggle { display:inline-flex; align-items:center; justify-content:center; position: relative; z-index: 1001; }
+  .nav:not(.open) .nav-items { display:none !important; }
+  .nav.open .nav-items { display:block; }
 }
-.toast.show { opacity: .95; }
+
+
+
+/* === Mobile burger nav (ultra fix) === */
+@media (max-width: 900px){
+  #mainNav { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  #mainNav .nav-toggle { display:inline-flex; align-items:center; justify-content:center; }
+  #mainNav .nav-items { display:none; width:100%; padding-top:6px; }
+  #mainNav.open .nav-items { display:block !important; }
+  #mainNav.open .nav-items > *,
+  #mainNav.open .nav-items a,
+  #mainNav.open .nav-items button,
+  #mainNav.open .nav-items .chip,
+  #mainNav.open #navUser { display: inline-flex !important; }
+  #mainNav:not(.open) .nav-items > *,
+  #mainNav:not(.open) .nav-items a,
+  #mainNav:not(.open) .nav-items button,
+  #mainNav:not(.open) .nav-items .chip,
+  #mainNav:not(.open) #navUser { display: none !important; }
+}
 

@@ -232,10 +232,8 @@ export async function listCampaignStoreLinksByOwner(ownerId){
     .map(l => ({ id:l.id, store:storeById[l.storeId], campaign:campById[l.campaignId], promoter: promById[l.promoterId] || null }));
 }
 
-
 export async function listShiftsForPromoter(promoterId, {from=null, to=null}={}){
   const all = (DB.shifts ? DB.shifts() : []).filter(s=>s.promoterId===promoterId);
-  // normalize to timestamps
   const fms = from ? (new Date(from)).getTime() : null;
   const tms = to ? (new Date(to)).getTime() : null;
   return all.filter(s=>{
@@ -245,7 +243,6 @@ export async function listShiftsForPromoter(promoterId, {from=null, to=null}={})
     return true;
   }).sort((a,b)=> (new Date(b.startAt||b.start||0)) - (new Date(a.startAt||a.start||0)));
 }
-
 export function shiftDurationHours(shift){
   const st = new Date(shift.startAt||shift.start||shift.startTime||0).getTime();
   const et = new Date(shift.endAt||shift.end||shift.endTime||0).getTime();
@@ -271,7 +268,6 @@ export async function respondToInvite({inviteId, action}){
   if(i.status!=='pending') return i;
   if(action==='accept'){
     i.status='accepted'; i.acceptedAt=now(); DB.saveInvites(invs);
-    // if campaign/store specified, link exact pair; otherwise just join campaign if provided
     if(i.campaignId && i.storeId){ try{ await linkPromoterToCampaignStore({campaignId:i.campaignId, storeId:i.storeId, promoterId:i.promoterId}); }catch(e){} }
     else if(i.campaignId){ try{ await assignToCampaign({campaignId:i.campaignId, promoterId:i.promoterId}); }catch(e){} }
     return i;
@@ -285,3 +281,46 @@ export async function revokeInvite(inviteId){
   const invs = DB.invites(); const i = invs.findIndex(x=>x.id===inviteId); if(i<0) return;
   invs[i].status='revoked'; invs[i].revokedAt=now(); DB.saveInvites(invs);
 }
+
+// ===== Questionnaires (Campaign forms) =====
+export async function createQuestionnaire({ownerId, campaignId, title, questions=[], active=true}){
+  if(!ownerId||!campaignId) throw new Error('ownerId and campaignId required');
+  const q = { id:id(), ownerId, campaignId, title:title||('Form '+new Date().toISOString().slice(0,10)), questions:[], active:!!active, createdAt:now() };
+  q.questions = (questions||[]).map((qq,i)=>({ id: qq.id || id(), label: (qq.label||('Q'+(i+1))), type: (qq.type||'text'), required: !!qq.required, options: (qq.options||[]) }));
+  const forms = DB.forms();
+  if(q.active){
+    forms.forEach(f=>{ if(f.campaignId===campaignId && f.ownerId===ownerId){ f.active=false; } });
+  }
+  forms.push(q); DB.saveForms(forms);
+  return q;
+}
+export async function listQuestionnairesForCampaign(campaignId){
+  return DB.forms().filter(f=>f.campaignId===campaignId).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+}
+export async function listQuestionnairesByOwner(ownerId){
+  return DB.forms().filter(f=>f.ownerId===ownerId).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+}
+export async function setQuestionnaireActive(id, active){
+  const forms = DB.forms(); const f = forms.find(x=>x.id===id); if(!f) return;
+  f.active = !!active;
+  if(active){ forms.forEach(x=>{ if(x.id!==id && x.campaignId===f.campaignId && x.ownerId===f.ownerId){ x.active=false; } }); }
+  DB.saveForms(forms);
+  return f;
+}
+export async function deleteQuestionnaire(id){
+  const forms = DB.forms(); const i=forms.findIndex(x=>x.id===id); if(i>=0){ forms.splice(i,1); DB.saveForms(forms); }
+  const rs = DB.qResponses().filter(r=>r.questionnaireId!==id); DB.saveQResponses(rs);
+}
+export async function submitResponse({questionnaireId, campaignId, promoterId, answers=[]}){
+  if(!questionnaireId||!promoterId) throw new Error('questionnaireId and promoterId required');
+  const rs = DB.qResponses();
+  const idx = rs.findIndex(r=>r.questionnaireId===questionnaireId && r.promoterId===promoterId);
+  const rec = { id: idx>=0 ? rs[idx].id : id(), questionnaireId, campaignId: campaignId||null, promoterId, answers: (answers||[]), submittedAt: now() };
+  if(idx>=0) rs[idx]=rec; else rs.push(rec);
+  DB.saveQResponses(rs);
+  return rec;
+}
+export async function listResponsesByQuestionnaire(questionnaireId){
+  return DB.qResponses().filter(r=>r.questionnaireId===questionnaireId).sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
+}
+
