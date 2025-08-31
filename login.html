@@ -12,6 +12,23 @@
       <a class="chip" href="signup.html">Create account</a>
       <button id="logoutBtn" class="btn-ghost">Logout</button>
     </nav>
+
+<script>
+// Role-based nav hide (fast, before modules)
+(function(){
+  try{
+    var s = JSON.parse(localStorage.getItem('fm_session')||'{}');
+    var users = JSON.parse(localStorage.getItem('fm_users')||'[]');
+    var me = users.find(function(u){ return u.id===s.uid; }) || null;
+    if(me && me.role==='promoter'){
+      ['navPromoters','navStores','navPost','navSuper'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.style.display='none';
+      });
+    }
+  }catch(e){}
+})();
+</script>
+
     <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
   </div>
 </header>
