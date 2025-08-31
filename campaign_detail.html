@@ -1,0 +1,90 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>FindMe — Campaign</title><link rel='stylesheet' href='css/style.css'></head><body>
+<header class="hdr">
+  <div class="brand">
+    <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
+    <div class="brand-text"><span class="brand-name">FindMe</span><span class="brand-tag">Campaign Staffing</span></div>
+  </div>
+  <div class="hdr-right">
+    <nav class="nav">
+      <a class="chip" href="dashboard.html">Dashboard</a>
+      <a class="chip" href="active_campaigns.html">Active Campaigns</a>
+      <a class="chip" id="navSuper" href="super.html">Super</a>
+      <button id="logoutBtn" class="btn-ghost">Logout</button>
+    </nav>
+    <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
+  </div>
+</header>
+<script type="module">
+import { onAuth, getUserDoc, signOut } from './js/offline.js';
+document.getElementById('navToggle').addEventListener('click', ()=>document.querySelector('.nav').classList.toggle('open'));
+const lg = document.getElementById('logoutBtn'); if(lg) lg.addEventListener('click', ()=>signOut().then(()=>location.href='login.html'));
+onAuth(async (u)=>{ const me=u?await getUserDoc(u.id||u):null; const isSuper=me && me.role==='super'; const el=document.getElementById('navSuper'); if(el) el.style.display=isSuper?'inline-flex':'none'; });
+</script>
+<main class="container">
+  <a href="active_campaigns.html" class="chip">← Back to campaigns</a>
+  <div class="card" style="margin-top:10px">
+    <h2 id="title" style="margin:0">Campaign</h2>
+    <div id="meta" class="small">—</div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top:12px">
+    <div class="card">
+      <h3 style="margin-top:0">Team</h3>
+      <div class="table-wrap">
+        <table class="table" id="teamTbl">
+          <thead><tr><th>Name</th><th>Email</th><th>Unassign</th></tr></thead><tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Add Promoters</h3>
+      <div class="grid grid-3">
+        <div><label>Search</label><input id="q" placeholder="Name or email"></div>
+        <div><label>Region</label><select id="pRegion"><option value=''>All</option><option>Eastern Cape</option><option>Free State</option><option>Gauteng</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option><option>Western Cape</option></select></div>
+        <div class="grid" style="grid-template-columns:1fr auto;align-items:end"><div></div><button id="searchBtn" class="btn">Search</button></div>
+      </div>
+      <div class="table-wrap" style="margin-top:8px">
+        <table class="table" id="promTbl"><thead><tr><th><input type="checkbox" id="selAll"></th><th>Name</th><th>Region</th><th>Email</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+        <button id="assignBtn" class="btn">Add to campaign</button>
+        <span id="assignMsg" class="small"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-top:0">Applications for this campaign</h3>
+    <div class="table-wrap">
+      <table class="table" id="appsTbl"><thead><tr><th>Promoter</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</main>
+<footer class="ftr">© 2025 FindMe • All rights reserved</footer>
+
+<script type="module">
+import { onAuth, getUserDoc, getCampaignById, listPromoters, listCampaignTeam, assignToCampaign, unassignFromCampaign, listApplicationsForOwner, updateApplicationStatus } from './js/offline.js';
+const params=new URLSearchParams(location.search); const CAMP_ID=params.get('id'); let ME=null, CAMP=null, PROM=[];
+onAuth(async (u)=>{ if(!u){ location.href='login.html'; return; } ME=await getUserDoc(u.id||u); if(ME.role!=='company'){ location.href='dashboard.html'; return; } CAMP = await getCampaignById(CAMP_ID); if(!CAMP){ alert('Campaign not found'); location.href='active_campaigns.html'; return; } hydrate(); PROM = await listPromoters(); await renderTeam(); await renderSearch(); await renderApps(); });
+function hydrate(){ title.textContent=CAMP.title; meta.textContent = 'Region: '+(CAMP.region||'-')+' • Dates: '+(CAMP.startDate||'-')+' → '+(CAMP.endDate||'-')+' • Budget: R '+(CAMP.budget||0); }
+async function renderTeam(){ const team=await listCampaignTeam(CAMP_ID); const users=JSON.parse(localStorage.getItem('fm_users')||'[]'); const byId=Object.fromEntries(users.map(u=>[u.id,u])); const tb=document.querySelector('#teamTbl tbody'); tb.innerHTML=''; team.forEach(t=>{ const p=byId[t.promoterId]||{}; const name=((p.firstName||'')+' '+(p.surname||'')).trim()||p.email||t.promoterId; const tr=document.createElement('tr'); tr.innerHTML='<td>'+name+'</td><td>'+(p.email||'-')+'</td><td><button class="btn-ghost" data-unassign="'+t.id+'">Remove</button></td>'; tb.appendChild(tr); }); }
+document.getElementById('teamTbl').addEventListener('click', async (e)=>{ const id=e.target.closest('button[data-unassign]')?.getAttribute('data-unassign'); if(!id) return; await unassignFromCampaign(id); await renderTeam(); });
+document.getElementById('searchBtn').addEventListener('click', renderSearch); document.getElementById('selAll').addEventListener('change', (e)=>{ document.querySelectorAll('#promTbl tbody input[type="checkbox"]').forEach(cb=>cb.checked=e.target.checked); });
+async function renderSearch(){ const qtxt=(q.value||'').toLowerCase(); const region=pRegion.value||CAMP.region; const users=JSON.parse(localStorage.getItem('fm_users')||'[]'); const list=users.filter(p=>p.role==='promoter').filter(p=>(!region||p.region===region)&&(!qtxt||(((p.firstName||'')+' '+(p.surname||'')+' '+(p.email||'')).toLowerCase().includes(qtxt)))); const tb=document.querySelector('#promTbl tbody'); tb.innerHTML=''; if(list.length===0){ const tr=document.createElement('tr'); tr.innerHTML='<td colspan="4"><div class="small">No promoters found; try clearing search or region.</div></td>'; tb.appendChild(tr); } else { list.forEach(p=>{ const tr=document.createElement('tr'); tr.innerHTML='<td><input type="checkbox" data-pid="'+p.id+'"></td><td>'+ (p.firstName||'') +' '+ (p.surname||'') +'</td><td>'+ (p.region||'-') +'</td><td>'+ (p.email||'-') +'</td>'; tb.appendChild(tr); }); } selAll.checked=false; }
+document.getElementById('assignBtn').addEventListener('click', async ()=>{ const sel=Array.from(document.querySelectorAll('#promTbl tbody input[type="checkbox"]:checked')).map(x=>x.getAttribute('data-pid')); if(sel.length===0){ assignMsg.textContent='Select at least one promoter.'; return; } for(const pid of sel){ await assignToCampaign({ campaignId:CAMP_ID, promoterId:pid, byOwnerId:ME.id }); } assignMsg.textContent='Added '+sel.length+' promoter(s).'; await renderTeam(); setTimeout(()=>assignMsg.textContent='', 1500); });
+async function renderApps(){ const all=await listApplicationsForOwner(ME.id); const list=all.filter(a=>a.campaign?.id===CAMP_ID || a.campaignId===CAMP_ID); const tb=document.querySelector('#appsTbl tbody'); tb.innerHTML=''; list.forEach(a=>{ const name=((a.promoter?.firstName||'')+' '+(a.promoter?.surname||'')).trim()||a.promoterId; const tr=document.createElement('tr'); tr.innerHTML='<td>'+name+'</td><td><span class="badge">'+(a.status||'pending')+'</span></td><td><button class="btn" data-acc="'+a.id+'">Accept</button> <button class="btn-ghost" data-rej="'+a.id+'">Reject</button></td>'; tb.appendChild(tr); }); tb.addEventListener('click', async (e)=>{ const a=e.target.closest('button[data-acc]')?.getAttribute('data-acc'); const r=e.target.closest('button[data-rej]')?.getAttribute('data-rej'); if(a){ await updateApplicationStatus(a,'accepted'); await renderApps(); await renderTeam(); } if(r){ await updateApplicationStatus(r,'rejected'); await renderApps(); } }); }
+</script>
+<div id="toast" class="toast"></div>
+
+<script>
+function toast(msg, ok=true){
+  const el = document.getElementById('toast'); if(!el) return;
+  el.textContent = msg;
+  el.style.background = ok ? '#111' : '#b00';
+  el.classList.add('show');
+  setTimeout(()=>{ el.classList.remove('show'); }, 1800);
+}
+</script>
+</body></html>
+

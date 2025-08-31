@@ -1,13 +1,4 @@
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FindMe — Log in (Offline)</title>
-<link rel="icon" href="assets/logo.png">
-<link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="manifest" href="site.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-</head><body>
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>FindMe — Log in</title><link rel='stylesheet' href='css/style.css'></head><body>
 <header class="hdr">
   <div class="brand">
     <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
@@ -18,41 +9,42 @@
   </div>
   <div class="hdr-right">
     <nav class="nav">
-  <a class="chip" href="signup.html">Sign up</a>
-</nav>
+      <a class="chip" href="signup.html">Create account</a>
+      <button id="logoutBtn" class="btn-ghost">Logout</button>
+    </nav>
     <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
   </div>
 </header>
-<main class="container">
+<main class="container auth-wrap">
   <div class="card">
-    <h2 style="margin-top:0">Welcome back</h2>
-    <p class="small">Offline demo build — email & password are stored locally for testing only.</p>
-    <div id="msg"></div>
-    <div class="grid grid-2">
+    <h2>Log in</h2>
+    <div id="err" class="error" style="display:none"></div>
+    <div class="grid">
       <div><label>Email</label><input id="email" placeholder="you@example.com"></div>
       <div><label>Password</label><input id="password" type="password" placeholder="••••••••"></div>
-    </div>
-    <div class="grid grid-2" style="margin-top:12px">
-      <button id="loginBtn" class="btn">Log in</button>
-      <a class="btn-ghost" href="signup.html">Create an account</a>
+      <div class="grid" style="grid-template-columns:1fr auto;align-items:end"><div></div><button id="loginBtn" class="btn">Log in</button></div>
+      <div class="small">No account? <a href="signup.html">Sign up</a></div>
     </div>
   </div>
 </main>
-<footer class='ftr'>© 2025 FindMe • All rights reserved</footer>
 <script type="module">
-import { signIn, showMsg } from './js/offline.js';
-document.getElementById('loginBtn').addEventListener('click', async ()=>{
-  try{ await signIn(email.value.trim(), password.value); window.location.href='dashboard.html'; }
-  catch(err){ console.error(err); showMsg(err.message||'Invalid email or password.','error'); }
+import { signIn } from './js/offline.js';
+document.getElementById('navToggle').addEventListener('click', ()=>document.querySelector('.nav').classList.toggle('open'));
+document.getElementById('loginBtn').addEventListener('click', async ()=>{ 
+  try{ await signIn(email.value.trim(), password.value.trim()); location.href='dashboard.html'; }
+  catch(err){ const el=document.getElementById('err'); el.style.display='block'; el.textContent = err.message||'Login failed'; }
 });
 </script>
-<script>document.addEventListener('click',e=>{if(e.target?.id==='navToggle'){document.querySelector('.nav')?.classList.toggle('open')}if(e.target?.closest('.nav')&&e.target.tagName==='A'){document.querySelector('.nav')?.classList.remove('open')}});</script>
-<script type="module">
-import { onAuth, getUserDoc } from './js/offline.js';
-onAuth(async (u)=>{
-  const link=document.getElementById('navSuper'); if(!link) return;
-  const you = u ? await getUserDoc(u.id||u) : null;
-  link.style.display = (you && you.role==='super') ? 'inline-flex' : 'none';
-});
+<div id="toast" class="toast"></div>
+
+<script>
+function toast(msg, ok=true){
+  const el = document.getElementById('toast'); if(!el) return;
+  el.textContent = msg;
+  el.style.background = ok ? '#111' : '#b00';
+  el.classList.add('show');
+  setTimeout(()=>{ el.classList.remove('show'); }, 1800);
+}
 </script>
 </body></html>
+

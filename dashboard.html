@@ -1,13 +1,4 @@
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FindMe — Dashboard (Offline)</title>
-<link rel="icon" href="assets/logo.png">
-<link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="manifest" href="site.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-</head><body>
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>FindMe — Dashboard</title><link rel='stylesheet' href='css/style.css'></head><body>
 <header class="hdr">
   <div class="brand">
     <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
@@ -18,124 +9,469 @@
   </div>
   <div class="hdr-right">
     <nav class="nav">
-  <span id="whoami" class="chip"></span>
-  <a class="chip" href="index.html">Home</a>
-  <a class="chip" id="navPost" href="post_campaign.html">Post</a>
-  <a class="chip" id="navPromoters" href="promoters.html">Promoters</a>
-  <a class="chip" id="navProfile" href="promoter_profile.html">Profile</a>
-  <a class="chip" id="navSuper" href="super.html">Super</a>
-  <button id="logoutBtn" class="btn-ghost">Logout</button>
-</nav>
+      <a class="chip" href="index.html">Home</a>
+      <a class="chip" href="dashboard.html">Dashboard</a>
+      <a class="chip" href="update_profile.html">Profile</a>
+      <a class="chip" id="navPromoters" href="promoters.html">Promoters</a>
+      <a class="chip" id="navStores" href="stores.html">Stores</a>
+      <a class="chip" id="navPost" href="post_campaign.html">Post Campaign</a>
+      <a class="chip" id="navActive" href="active_campaigns.html">Active Campaigns</a>
+      <a class="chip" id="navSuper" href="super.html">Super</a>
+      <a class="chip" href="signup.html">Create account</a>
+      <button id="logoutBtn" class="btn-ghost">Logout</button>
+    </nav>
     <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
   </div>
 </header>
+<script type="module">
+import { onAuth, getUserDoc, signOut , listPromoters, listStoresByOwner, listCampaignsByOwner, linkPromoterToCampaignStore, listCampaignStoreLinksByOwner, unlinkPromoterFromCampaignStore, listShiftsForPromoter, shiftDurationHours, createInvite, listInvitesForPromoter, listInvitesByOwner, respondToInvite, revokeInvite, listCompanies} from './js/offline.js';
+document.getElementById('navToggle').addEventListener('click', ()=>document.querySelector('.nav').classList.toggle('open'));
+const lg = document.getElementById('logoutBtn'); if(lg) lg.addEventListener('click', ()=>signOut().then(()=>location.href='login.html'));
+onAuth(async (u)=>{ 
+  const me = u ? await getUserDoc(u.id||u) : null;
+  const isCompany = me && me.role==='company'; const isPromoter = me && me.role==='promoter'; const isSuper = me && me.role==='super';
+  const show = (id, ok)=>{ const el=document.getElementById(id); if(el) el.style.display = ok?'inline-flex':'none'; };
+  show('navPromoters', isCompany); show('navStores', isCompany); show('navPost', isCompany);
+  show('navActive', (isCompany||isPromoter)); show('navSuper', isSuper);
+});
+</script>
+
 <main class="container">
-  <div class="card" id="promoterCard">
-    <h2>Promoter Dashboard</h2>
-    <h3>Campaigns in your region</h3>
-    <div class="table-wrap"><table class="table" id="campaignTable"><thead><tr><th>Title</th><th>Region</th><th>Budget</th><th>Apply</th></tr></thead><tbody></tbody></table></div>
-    <h3>Invitations</h3>
-    <div class="table-wrap"><table class="table" id="inviteTable"><thead><tr><th>Campaign</th><th>Company</th><th>Message</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
-    <h3>Your Applications</h3>
-    <div class="table-wrap"><table class="table" id="myApps"><thead><tr><th>Date</th><th>Campaign</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+  <div id="companyBlock" class="card" style="display:none">
+    <h2 style="margin:0">Company dashboard</h2>
+    <div class="grid grid-3" style="margin-top:10px">
+      <a class="btn" href="post_campaign.html">Post a campaign</a>
+      <a class="btn" href="promoters.html">Browse promoters</a>
+      <a class="btn" href="stores.html">Stores</a>
+    </div>
+    <div class="card" id="linkAssignCard" style="margin-top:14px">
+      <h3>Link Assignment (Campaign ↔ Store ↔ Promoter)</h3>
+      <div class="grid" style="grid-template-columns:1fr 1fr 1fr auto; gap:8px; align-items:end">
+        <label class="field">
+          <span>Campaign</span>
+          <select id="selCampaign"></select>
+        </label>
+        <label class="field">
+          <span>Store</span>
+          <select id="selStore"></select>
+        </label>
+        <label class="field">
+          <span>Promoter</span>
+          <select id="selPromoter"></select>
+        </label>
+        <button id="btnLink" class="btn">Link</button>
+      </div>
+    <div class="card" id="inviteCard" style="margin-top:14px">
+      </div><div id="pane_invites"><h3>Invitations</h3>
+    <div class="table-wrap" style="margin-top:6px">
+      <table class="table" id="proInvitesTbl">
+        <thead><tr><th>Campaign</th><th>Store</th><th>From</th><th>Status</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+      <div class="grid" style="grid-template-columns:1fr 1fr 1fr auto; gap:8px; align-items:end">
+        <label class="field">
+          <span>Promoter</span>
+          <select id="invPromoter"></select>
+        </label>
+        <label class="field">
+          <span>Campaign (optional)</span>
+          <select id="invCampaign"><option value="">—</option></select>
+        </label>
+        <label class="field">
+          <span>Store (optional)</span>
+          <select id="invStore"><option value="">—</option></select>
+        </label>
+        <button class="btn" id="btnInvite">Send Invite</button>
+      </div>
+      <div class="table-wrap" style="margin-top:10px">
+        <table class="table" id="ownerInvitesTbl">
+          <thead><tr><th>Promoter</th><th>Campaign</th><th>Store</th><th>Status</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+      <div id="linkMsg" class="small" style="margin-top:6px; display:none"></div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table class="table" id="linksTable">
+          <thead><tr><th>Campaign</th><th>Store</th><th>Promoter</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3 style="margin-top:20px">Applications</h3>
+    <div class="table-wrap"><table class="table" id="appsOwner"><thead><tr><th>Campaign</th><th>Promoter</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+
+    <h3 style="margin-top:20px">My Campaigns</h3>
+    <div class="table-wrap"><table class="table" id="myCamps"><thead><tr><th>Title</th><th>Region</th><th>Start</th><th>End</th><th>Status</th><th>Open</th><th>Delete</th></tr></thead><tbody></tbody></table></div>
   </div>
-  <div class="card" id="companyCard">
-    <h2>Company Dashboard</h2>
-    <div class="grid grid-2"><a class="btn" href="post_campaign.html">Post a Campaign</a><a class="btn-ghost" href="promoters.html">Browse Promoters</a></div>
-    <h3>Your Campaigns</h3>
-    <div class="table-wrap"><table class="table" id="myCampaigns"><thead><tr><th>Title</th><th>Region</th><th>Budget</th></tr></thead><tbody></tbody></table></div>
-    <h3>Applications</h3>
-    <div class="table-wrap"><table class="table" id="ownerApps"><thead><tr><th>Date</th><th>Campaign</th><th>Promoter</th><th>Region</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+
+  <div id="promoterBlock" class="card" style="display:none">
+    <div class="grid" style="grid-template-columns:1fr auto;align-items:center;margin-bottom:10px">
+      <h2 style="margin:0">Promoter dashboard</h2>
+      <button id="pRefresh" class="btn-ghost">Refresh</button>
+    </div></div>
+    <div id="promoterTabs" class="tabs" style="margin:8px 0 14px 0; display:flex; gap:8px; flex-wrap:wrap">
+      <button class="chip" data-tab="assign">Assignments</button>
+      <button class="chip" data-tab="invites">Invitations</button>
+      <button class="chip" data-tab="timesheet">Timesheet</button>
+    </div>
+
+    <div id="pError" class="error" style="display:none"></div>
+    <div id="myAssignments" class="notice">You have <strong><span id="assignCountStores">0</span></strong> store(s) and <strong><span id="assignCountCamps">0</span></strong> campaign(s) assigned.</div>
+
+    <h3>Assigned Stores</h3>
+    <div id="emptyStores" class="small" style="display:none">No stores assigned yet.</div>
+    <div class="table-wrap"><table class="table" id="myStores"><thead><tr><th>Store</th><th>Region</th><th>Distance</th><th>Check-in</th></tr></thead><tbody></tbody></table></div>
+
+    <h3>Campaigns in your region</h3>
+    <div class="table-wrap"><table class="table" id="campByRegion"><thead><tr><th>Title</th><th>Start</th><th>Budget</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+
+    <h3>My Campaigns (assigned)</h3>
+    <div id="emptyCamps" class="small" style="display:none">No campaigns assigned yet.</div>
+    <div class="table-wrap"><table class="table" id="myAssignedCamps"><thead><tr><th>Campaign</th><th>Start</th><th>End</th></tr></thead><tbody></tbody></table></div>
+
+    </div><div id="pane_invites"><h3>Invitations</h3>
+    <div class="table-wrap"><table class="table" id="invites"><thead><tr><th>From</th><th>Campaign</th><th>Message</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+    </div><div id="pane_timesheet"><div class="card" id="timesheetCard" style="margin-top:14px">
+      <h3>Timesheet</h3>
+      <div class="grid" style="grid-template-columns: repeat(4, minmax(0,1fr)); gap:8px; align-items:end">
+        <label class="field">
+          <span>From</span>
+          <input type="date" id="tsFrom">
+        </label>
+        <label class="field">
+          <span>To</span>
+          <input type="date" id="tsTo">
+        </label>
+        <label class="field">
+          <span>Export</span>
+          <button id="tsExport" class="btn-ghost">Download CSV</button>
+        </label>
+        <div class="small" id="tsTotals" style="text-align:right; align-self:center"></div>
+      </div>
+      <div class="table-wrap" style="margin-top:10px">
+        <table class="table" id="tsTable">
+          <thead>
+            <tr>
+              <th>Date</th><th>Store</th><th>Campaign</th><th>Start</th><th>End</th><th>Hours</th><th>Pay (est)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    
+
+    <h3>My Applications</h3>
+    <div class="table-wrap"><table class="table" id="appsPromoter"><thead><tr><th>Campaign</th><th>Status</th></tr></thead><tbody></tbody></table></div>
   </div>
 </main>
-<footer class='ftr'>© 2025 FindMe • All rights reserved</footer>
+<footer class="ftr">© 2025 FindMe • All rights reserved</footer>
 <script type="module">
-import { onAuth, signOut, getUserDoc, listCampaignsByRegion, applyToCampaign, invitesForPromoter, listCampaignsByOwner, updateInviteStatus, listApplicationsForPromoter, listApplicationsForOwner, updateApplicationStatus } from './js/offline.js';
-const who=document.getElementById('whoami');
-const navPost=document.getElementById('navPost');
-const navPromoters=document.getElementById('navPromoters');
-document.getElementById('logoutBtn').addEventListener('click', ()=>signOut().then(()=>location.href='login.html'));
-document.addEventListener('click',e=>{ if(e.target?.id==='navToggle'){document.querySelector('.nav')?.classList.toggle('open')} if(e.target?.closest('.nav')&&e.target.tagName==='A'){document.querySelector('.nav')?.classList.remove('open')} });
-onAuth(async (u)=>{
-  if(!u){ location.href='login.html'; return; }
-  const you=await getUserDoc(u.id);
-  who.textContent = you?.role==='promoter' ? `${you.firstName||''} ${you.surname||''} — ${you.region||''}`.trim() : `${you.companyName||''} — ${you.region||''}`;
-  const isPromoter = you?.role==='promoter';
-  if(isPromoter){ navPost.style.display='none'; navPromoters.style.display='none'; }
-  document.getElementById('promoterCard').style.display = isPromoter?'block':'none';
-  document.getElementById('companyCard').style.display = isPromoter?'none':'block';
-
-  if(isPromoter){
-    const tbody=document.querySelector('#campaignTable tbody'); tbody.innerHTML='';
-    (await listCampaignsByRegion(you.region)).forEach(c=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML = `<td data-label="Title">${c.title}</td><td data-label="Region">${c.region}</td><td data-label="Budget"><span class="chip info">R ${c.budget}</span></td><td data-label="Apply"><button class="btn" data-id="${c.id}">Apply</button></td>`;
+import { onAuth, getUserDoc, listCampaignsByRegion, applyToCampaign, invitesForPromoter, listApplicationsForPromoter, listApplicationsForOwner, updateApplicationStatus, listStoresForPromoter, checkInAtStore, listCampaignsByOwner, deleteCampaign, listCampaignsForPromoter } from './js/offline.js';
+let ME=null;
+onAuth(async (u)=>{ if(!u){ location.href='login.html'; return; } try{ ME=await getUserDoc(u.id||u); const isC=ME.role==='company', isP=ME.role==='promoter'; document.getElementById('companyBlock').style.display=isC?'block':'none'; document.getElementById('promoterBlock').style.display=isP?'block':'none'; if(isP) await loadPromoter(); if(isC) await loadCompany(); document.getElementById('pRefresh').addEventListener('click', ()=>loadPromoter()); }catch(e){ const el=document.getElementById('pError'); el.style.display='block'; el.textContent = e.message||'Error loading dashboard'; }});
+async function loadPromoter(){ 
+  const stores=await listStoresForPromoter(ME.id);
+  assignCountStores.textContent = stores.length;
+  const sBody=document.querySelector('#myStores tbody'); sBody.innerHTML='';
+  if(stores.length===0){ emptyStores.style.display='block'; } else { emptyStores.style.display='none'; 
+  // --- Timesheet ---
+  async function renderTimesheet(){
+    // fetch shifts
+    const from = (document.getElementById('tsFrom')||{}).value || null;
+    const to   = (document.getElementById('tsTo')||{}).value || null;
+    const shifts = await listShiftsForPromoter(ME.id, {from, to});
+    // join helpers
+    const stores = await listStoresForPromoter(ME.id);
+    const storeById = {}; stores.forEach(s=>storeById[s.id]=s);
+    const links = DB.campStoreLinks ? DB.campStoreLinks() : [];
+    const camps = await listCampaignsForPromoter(ME.id);
+    const campById = {}; camps.forEach(c=>campById[c.id]=c);
+    const linkLookup = {}; 
+    links.forEach(l=>{ if(l.promoterId===ME.id){ (linkLookup[l.storeId] ||= []).push(l.campaignId); } });
+    // render
+    const tbody = document.querySelector('#tsTable tbody'); if(!tbody) return;
+    tbody.innerHTML='';
+    let totalH=0, totalPay=0;
+    shifts.forEach(s=>{
+      const st = new Date(s.startAt||s.start||s.startTime||0);
+      const et = new Date(s.endAt||s.end||s.endTime||0);
+      const hrs = shiftDurationHours(s);
+      totalH += hrs;
+      const store = storeById[s.storeId] || {};
+      // choose a campaign: take first linked for this store (at render time)
+      const campIds = linkLookup[s.storeId] || [];
+      const camp = campIds.length ? (campById[campIds[0]] || {}) : {};
+      const rate = camp.ratePerHour || 0;
+      const pay = Math.round(hrs * rate * 100) / 100;
+      totalPay += pay;
+      const d = st.toISOString().slice(0,10);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${d}</td>
+                      <td>${store.name||'-'}</td>
+                      <td>${camp.title||camp.name||'-'}</td>
+                      <td>${st.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+                      <td>${et && et.toString()!=='Invalid Date' ? et.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '-'}</td>
+                      <td>${hrs.toFixed(2)}</td>
+                      <td>${pay.toFixed(2)}</td>`;
       tbody.appendChild(tr);
     });
-    tbody.addEventListener('click', async (e)=>{
-      if(e.target.tagName==='BUTTON'){ await applyToCampaign({campaignId:e.target.getAttribute('data-id'), promoterId:u.id}); alert('Application submitted!'); await renderAppsPromoter(); }
-    });
-    const itbody=document.querySelector('#inviteTable tbody');
-    async function renderInvites(){
-      itbody.innerHTML='';
-      (await invitesForPromoter(u.id)).forEach(inv=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML=`<td data-label="Campaign">${inv.campaignId}</td><td data-label="Company">${inv.companyId}</td><td data-label="Message">${inv.message||'-'}</td><td data-label="Status"><span class="chip ${inv.status==='accepted'?'success':inv.status==='rejected'?'warn':'info'}">${inv.status}</span></td><td data-label="Actions">${inv.status==='sent'?'<button class="btn" data-act="accept" data-id="'+inv.id+'">Accept</button> <button class="btn-ghost" data-act="decline" data-id="'+inv.id+'">Decline</button>':'-'}</td>`;
-        itbody.appendChild(tr);
-      });
-    }
-    itbody.addEventListener('click', async (e)=>{
-      const act=e.target.getAttribute('data-act'); if(!act) return;
-      const id=e.target.getAttribute('data-id');
-      await updateInviteStatus(id, act==='accept'?'accepted':'rejected');
-      await renderInvites(); alert('Invitation '+act+'ed.');
-    });
-    async function renderAppsPromoter(){
-      const tbodyA=document.querySelector('#myApps tbody'); if(!tbodyA) return;
-      tbodyA.innerHTML='';
-      (await listApplicationsForPromoter(u.id)).forEach(a=>{
-        const dt = new Date(a.createdAt).toLocaleString();
-        const row = document.createElement('tr');
-        row.innerHTML = `<td data-label="Date">${dt}</td><td data-label="Campaign">${a.campaign?.title||a.campaignId}</td><td data-label="Status"><span class="chip ${a.status==='accepted'?'success':a.status==='rejected'?'warn':'info'}">${a.status||'pending'}</span></td>`;
-        tbodyA.appendChild(row);
-      });
-    }
-    await renderInvites(); await renderAppsPromoter();
-  } else {
-    const tbody=document.querySelector('#myCampaigns tbody'); tbody.innerHTML='';
-    (await listCampaignsByOwner(u.id)).forEach(c=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML = `<td data-label="Title">${c.title}</td><td data-label="Region">${c.region}</td><td data-label="Budget">R ${c.budget}</td>`;
+    const totalEl = document.getElementById('tsTotals');
+    if(totalEl){ totalEl.textContent = `Total: ${totalH.toFixed(2)} hrs — ${totalPay.toFixed(2)}`;
+  // Promoter invites list
+  async function renderProInvites(){
+    const rows = await listInvitesForPromoter(ME.id);
+    const tbody = document.querySelector('#proInvitesTbl tbody'); if(!tbody) return;
+    // preload lookup
+    const camps = await listCampaignsForPromoter(ME.id);
+    const stores = await listStoresForPromoter(ME.id);
+    const owners = await listCompanies();
+    const byId = (arr)=>Object.fromEntries(arr.map(x=>[x.id,x]));
+    const campBy=byId(camps), storeBy=byId(stores), ownerBy=byId(owners);
+    tbody.innerHTML='';
+    rows.forEach(r=>{
+      const c = campBy[r.campaignId]||{};
+      const s = storeBy[r.storeId]||{};
+      const o = ownerBy[r.ownerId]||{};
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${c.title||c.name||'-'}</td>
+                      <td>${s.name||'-'}</td>
+                      <td>${o.companyName||o.email||'-'}</td>
+                      <td>${r.status}</td>
+                      <td style="text-align:right">${
+                        r.status==='pending' ? `<button class="btn" data-acc="${r.id}">Accept</button> <button class="btn-ghost" data-dec="${r.id}">Decline</button>` : ''
+                      }</td>`;
       tbody.appendChild(tr);
     });
-    async function renderOwnerApps(){
-      const tbodyA=document.querySelector('#ownerApps tbody'); if(!tbodyA) return;
-      tbodyA.innerHTML='';
-      (await listApplicationsForOwner(u.id)).forEach(a=>{
-        const dt = new Date(a.createdAt).toLocaleString();
-        const promName = ((a.promoter?.firstName||'')+' '+(a.promoter?.surname||'')).trim();
-        const row=document.createElement('tr');
-        row.innerHTML = `<td data-label="Date">${dt}</td><td data-label="Campaign">${a.campaign?.title||a.campaignId}</td><td data-label="Promoter">${promName||a.promoterId}</td><td data-label="Region">${a.promoter?.region||'-'}</td><td data-label="Email">${a.promoter?.email||'-'}</td><td data-label="Status"><span class="chip ${a.status==='accepted'?'success':a.status==='rejected'?'warn':'info'}">${a.status||'pending'}</span></td><td data-label="Actions">${a.status==='pending'?'<button class="btn" data-app-act="accept" data-id="'+a.id+'">Accept</button> <button class="btn-ghost" data-app-act="reject" data-id="'+a.id+'">Reject</button>':''}</td>`;
-        tbodyA.appendChild(row);
-      });
-    }
-    document.querySelector('#ownerApps').addEventListener('click', async (e)=>{
-      const act=e.target.getAttribute('data-app-act'); if(!act) return;
-      const id=e.target.getAttribute('data-id');
-      await updateApplicationStatus(id, act==='accept'?'accepted':'rejected');
-      await renderOwnerApps();
-    });
-    await renderOwnerApps();
   }
-});
+  await renderProInvites();
+  const proTbl = document.getElementById('proInvitesTbl');
+  if(proTbl){
+    proTbl.addEventListener('click', async (e)=>{
+      const acc = e.target && e.target.getAttribute && e.target.getAttribute('data-acc');
+      const dec = e.target && e.target.getAttribute && e.target.getAttribute('data-dec');
+      if(!acc && !dec) return;
+      try{
+        await respondToInvite({inviteId:(acc||dec), action: acc?'accept':'decline'});
+        toast(acc?'Invite accepted ✓':'Invite declined');
+        await renderProInvites();
+        if(acc){ await loadPromoter(); } // refresh assignments
+      }catch(err){ toast(err.message||'Failed', false); }
+    });
+  }
+}
+  }
+
+  // Wire date filters + export
+  const tsFrom = document.getElementById('tsFrom');
+  const tsTo = document.getElementById('tsTo');
+  if(tsFrom) tsFrom.addEventListener('change', renderTimesheet);
+  if(tsTo) tsTo.addEventListener('change', renderTimesheet);
+  const tsExport = document.getElementById('tsExport');
+  if(tsExport) tsExport.addEventListener('click', async ()=>{
+    const from = (document.getElementById('tsFrom')||{}).value || null;
+    const to   = (document.getElementById('tsTo')||{}).value || null;
+    const shifts = await listShiftsForPromoter(ME.id, {from, to});
+    const stores = await listStoresForPromoter(ME.id);
+    const storeById = {}; stores.forEach(s=>storeById[s.id]=s);
+    const links = DB.campStoreLinks ? DB.campStoreLinks() : [];
+    const camps = await listCampaignsForPromoter(ME.id);
+    const campById = {}; camps.forEach(c=>campById[c.id]=c);
+    const linkLookup = {}; links.forEach(l=>{ if(l.promoterId===ME.id){ (linkLookup[l.storeId] ||= []).push(l.campaignId); } });
+    const rows = [['Date','Store','Campaign','Start','End','Hours','Rate','Pay']];
+    shifts.forEach(s=>{
+      const st = new Date(s.startAt||s.start||s.startTime||0);
+      const et = new Date(s.endAt||s.end||s.endTime||0);
+      const hrs = shiftDurationHours(s);
+      const store = storeById[s.storeId] || {};
+      const campIds = linkLookup[s.storeId] || [];
+      const camp = campIds.length ? (campById[campIds[0]] || {}) : {};
+      const rate = camp.ratePerHour || 0;
+      const pay = Math.round(hrs*rate*100)/100;
+      rows.push([st.toISOString().slice(0,10), store.name||'', camp.title||camp.name||'', st.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), et && et.toString()!=='Invalid Date' ? et.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '', hrs.toFixed(2), rate, pay.toFixed(2)]);
+    });
+    const csv = rows.map(r=>r.map(v=>(''+v).replace(/"/g,'""')).map(v=>`"${v}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'timesheet.csv'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  });
+
+  await renderTimesheet();
+}
+  stores.forEach(s=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+s.name+'<div class="small">'+(s.code||'')+'</div></td><td>'+ (s.region||'-') +'</td><td><span class="small" id="d_'+s.id+'">—</span></td><td><button class="btn" data-checkin="'+s.id+'">Check in</button></td>'; sBody.appendChild(tr); });
+  // Distance calc (best-effort)
+  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(pos=>{ const lat=pos.coords.latitude,lng=pos.coords.longitude; stores.forEach(s=>{ if(s.lat!=null&&s.lng!=null){ const R=6371000,rad=x=>x*Math.PI/180; const dLat=rad(lat-s.lat), dLon=rad(lng-s.lng); const a=Math.sin(dLat/2)**2+Math.cos(rad(s.lat))*Math.cos(rad(lat))*Math.sin(dLon/2)**2; const d=2*R*Math.asin(Math.sqrt(a)); const el=document.getElementById('d_'+s.id); if(el) el.textContent=Math.round(d)+' m'; } }); });
+  // Delegated click for check-in
+  const storesTbl=document.querySelector('#myStores');
+  storesTbl.addEventListener('click', async (e)=>{ const btn=e.target.closest('button[data-checkin]'); if(!btn) return; const storeId=btn.getAttribute('data-checkin'); const doCheck=(lat,lng)=>checkInAtStore({ storeId, promoterId:ME.id, lat, lng, radiusMeters:200 }).then(res=>alert(res.withinRadius?('Checked in ✓ — '+res.distanceMeters+' m'):('Saved (outside radius '+(res.distanceMeters||'?')+' m)'))).catch(err=>alert(err.message||'Check-in failed')); if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>doCheck(p.coords.latitude,p.coords.longitude), ()=>{ const lat=parseFloat(prompt('Enter LATITUDE:','')); const lng=parseFloat(prompt('Enter LONGITUDE:','')); if(!isNaN(lat)&&!isNaN(lng)) doCheck(lat,lng); }); else { const lat=parseFloat(prompt('Enter LATITUDE:','')); const lng=parseFloat(prompt('Enter LONGITUDE:','')); if(!isNaN(lat)&&!isNaN(lng)) doCheck(lat,lng); } });
+  // Campaigns in region
+  const region = ME.region || '';
+  const camps=await listCampaignsByRegion(region); const cb=document.querySelector('#campByRegion tbody'); cb.innerHTML='';
+  camps.forEach(c=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+c.title+'</td><td>'+(c.startDate||'-')+'</td><td>R '+(c.budget||0)+'</td><td><button class="btn" data-apply="'+c.id+'">Apply</button></td>'; cb.appendChild(tr); });
+  document.querySelector('#campByRegion').addEventListener('click', async (e)=>{ const id=e.target.closest('button[data-apply]')?.getAttribute('data-apply'); if(!id) return; await applyToCampaign({campaignId:id, promoterId:ME.id}); alert('Applied ✓'); });
+  // Assigned campaigns
+  const assigned=await listCampaignsForPromoter(ME.id); assignCountCamps.textContent = assigned.length; const asb=document.querySelector('#myAssignedCamps tbody'); asb.innerHTML=''; if(assigned.length===0){ emptyCamps.style.display='block'; } else { emptyCamps.style.display='none'; }
+  assigned.forEach(c=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+c.title+'</td><td>'+(c.startDate||'-')+'</td><td>'+(c.endDate||'-')+'</td>'; asb.appendChild(tr); });
+  // Invitations
+  const inv=await invitesForPromoter(ME.id); const ib=document.querySelector('#invites tbody'); ib.innerHTML=''; inv.forEach(i=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+i.companyId+'</td><td>'+(i.campaignId||'-')+'</td><td>'+(i.message||'')+'</td><td><span class="badge">'+(i.status||'sent')+'</span></td>'; ib.appendChild(tr); });
+  // My applications
+  const apps=await listApplicationsForPromoter(ME.id); const ap=document.querySelector('#appsPromoter tbody'); ap.innerHTML=''; apps.forEach(a=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+ (a.campaign?.title||a.campaignId) +'</td><td><span class="badge">'+(a.status||'pending')+'</span></td>'; ap.appendChild(tr); });
+}
+async function loadCompany(){ const apps=await listApplicationsForOwner(ME.id); const tb=document.querySelector('#appsOwner tbody'); tb.innerHTML=''; apps.forEach(a=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+ (a.campaign?.title||a.campaignId) +'</td><td>'+ (a.promoter?.firstName||"")+ ' '+(a.promoter?.surname||"") +'</td><td><span class="badge">'+(a.status||'pending')+'</span></td><td><button class="btn" data-acc="'+a.id+'">Accept</button> <button class="btn-ghost" data-rej="'+a.id+'">Reject</button></td>'; tb.appendChild(tr); }); tb.addEventListener('click', async (e)=>{ const a=e.target.closest('button[data-acc]')?.getAttribute('data-acc'); const r=e.target.closest('button[data-rej]')?.getAttribute('data-rej'); if(a){ await updateApplicationStatus(a,'accepted'); await loadCompany(); } if(r){ await updateApplicationStatus(r,'rejected'); await loadCompany(); } });
+  const camps = await listCampaignsByOwner(ME.id); const cb = document.querySelector('#myCamps tbody'); if(cb){ cb.innerHTML=''; const today = new Date().toISOString().slice(0,10); function status(c){ const s=c.startDate||''; const e=c.endDate||''; if(e && e < today) return 'Finished'; if(s && s > today) return 'Upcoming'; if(s && (!e || e>=today)) return 'Active'; return 'Active'; } camps.forEach(c=>{ const tr=document.createElement('tr'); tr.innerHTML = '<td>'+ (c.title||'-') +'</td><td>'+ (c.region||'-') +'</td><td>'+ (c.startDate||'-') +'</td><td>'+ (c.endDate||'-') +'</td><td><span class="badge">'+ status(c) +'</span></td><td><a class="btn" href="campaign_detail.html?id='+c.id+'">Open</a></td><td><button class="btn-danger" data-delcamp="'+c.id+'">Delete</button></td>'; cb.appendChild(tr); }); cb.addEventListener('click', async (e)=>{ const id=e.target.closest('button[data-delcamp]')?.getAttribute('data-delcamp'); if(!id) return; if(confirm('Delete this campaign? Applications and invites for it will be removed.')){ await deleteCampaign(ME.id, id); await loadCompany(); } }); 
+  // Populate selects
+  const [camps, stores, promos] = await Promise.all([
+    listCampaignsByOwner(ME.id),
+    listStoresByOwner(ME.id),
+    listPromoters()
+  ]);
+  const by = (arr, formatter, selId)=>{
+    const sel=document.getElementById(selId); if(!sel) return;
+    sel.innerHTML='';
+    arr.forEach(x=>{
+      const opt=document.createElement('option');
+      opt.value=x.id; opt.textContent = formatter(x);
+      sel.appendChild(opt);
+    });
+  };
+  by(camps, c=>c.title||c.name||c.id, 'selCampaign');
+  by(stores, s=>s.name||s.id, 'selStore');
+  by(promos, p=>((p.firstName||'')+' '+(p.surname||'')).trim() || p.email || p.id, 'selPromoter');
+
+  // Link button
+  const msg = document.getElementById('linkMsg');
+  const showMsg = (t, ok=true)=>{ if(!msg) return; msg.style.display='block'; msg.textContent=t; msg.style.color = ok ? '#0a0' : '#b00'; setTimeout(()=>msg.style.display='none', 2500); };
+  const btn = document.getElementById('btnLink');
+  if(btn){
+    btn.onclick = async ()=>{
+      try{
+        const campaignId = (document.getElementById('selCampaign')||{}).value;
+        const storeId = (document.getElementById('selStore')||{}).value;
+        const promoterId = (document.getElementById('selPromoter')||{}).value;
+        if(!campaignId||!storeId||!promoterId){ showMsg('Please select a campaign, store and promoter', false); return; 
+  // Invitations: populate selects
+  const promosAll = await listPromoters();
+  const campsAll = await listCampaignsByOwner(ME.id);
+  const storesAll = await listStoresByOwner(ME.id);
+  const setSel = (id, arr, lab)=>(()=>{ const el=document.getElementById(id); if(!el) return; el.innerHTML=''; if(id!=='invPromoter'){ const o=document.createElement('option'); o.value=''; o.textContent='—'; el.appendChild(o);} arr.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=lab(x); el.appendChild(o); }); })();
+  setSel('invPromoter', promosAll, p=>((p.firstName||'')+' '+(p.surname||'')).trim()||p.email||p.id);
+  setSel('invCampaign', campsAll, c=>c.title||c.name||c.id);
+  setSel('invStore', storesAll, s=>s.name||s.id);
+
+  // Send invite
+  const btnInv = document.getElementById('btnInvite');
+  if(btnInv){ btnInv.onclick = async ()=>{
+    const promoterId=(document.getElementById('invPromoter')||{}).value;
+    const campaignId=(document.getElementById('invCampaign')||{}).value||null;
+    const storeId=(document.getElementById('invStore')||{}).value||null;
+    if(!promoterId){ toast('Choose a promoter', false); return; }
+    await createInvite({ownerId:ME.id, promoterId, campaignId, storeId});
+    toast('Invite sent ✓');
+    await renderOwnerInvites();
+  };}
+
+  // List invites (owner view)
+  async function renderOwnerInvites(){
+    const rows = await listInvitesByOwner(ME.id);
+    const tbody = document.querySelector('#ownerInvitesTbl tbody'); if(!tbody) return;
+    tbody.innerHTML='';
+    rows.forEach(r=>{
+      const p = promosAll.find(x=>x.id===r.promoterId)||{};
+      const c = campsAll.find(x=>x.id===r.campaignId)||{};
+      const s = storesAll.find(x=>x.id===r.storeId)||{};
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${(((p.firstName||'')+' '+(p.surname||'')).trim()||p.email||p.id)}</td>
+                      <td>${c.title||c.name||'-'}</td>
+                      <td>${s.name||'-'}</td>
+                      <td>${r.status}</td>
+                      <td style="text-align:right">${r.status==='pending'?`<button class="btn-ghost" data-revoke="${r.id}">Revoke</button>`:''}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  await renderOwnerInvites();
+  const ownerInv = document.getElementById('ownerInvitesTbl');
+  if(ownerInv){
+    ownerInv.addEventListener('click', async (e)=>{
+      const id = e.target && e.target.getAttribute && e.target.getAttribute('data-revoke');
+      if(!id) return;
+      await revokeInvite(id);
+      toast('Invite revoked', true);
+      await renderOwnerInvites();
+    });
+  }
+}
+        await linkPromoterToCampaignStore({ campaignId, storeId, promoterId });
+        showMsg('Linked ✓');
+        await renderLinks();
+      }catch(e){ showMsg(e.message||'Failed to link', false); }
+    };
+  }
+
+  // Render links table
+  async function renderLinks(){
+    const rows = await listCampaignStoreLinksByOwner(ME.id);
+    const tbody = document.querySelector('#linksTable tbody'); if(!tbody) return;
+    tbody.innerHTML='';
+    rows.forEach(r=>{
+      const tr=document.createElement('tr');
+      const promLabel = r.promoter ? (((r.promoter.firstName||'')+' '+(r.promoter.surname||'')).trim() || r.promoter.email || r.promoter.id) : '(unknown)';
+      tr.innerHTML = `<td>${(r.campaign&& (r.campaign.title||r.campaign.name))||'-'}</td>
+                      <td>${(r.store&& r.store.name)||'-'}</td>
+                      <td>${promLabel}</td>
+                      <td style="text-align:right"><button class="btn-ghost" data-del="${r.id}">Unlink</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  await renderLinks();
+  const linksTbl = document.getElementById('linksTable');
+  if(linksTbl){
+    linksTbl.addEventListener('click', async (e)=>{
+      const id = e.target && e.target.getAttribute && e.target.getAttribute('data-del');
+      if(!id) return;
+      await unlinkPromoterFromCampaignStore(id);
+      await renderLinks();
+    });
+  }
+}
 </script>
-<script>document.addEventListener('click',e=>{if(e.target?.id==='navToggle'){document.querySelector('.nav')?.classList.toggle('open')}if(e.target?.closest('.nav')&&e.target.tagName==='A'){document.querySelector('.nav')?.classList.remove('open')}});</script>
+<div id="toast" class="toast"></div>
+
+<script>
+function toast(msg, ok=true){
+  const el = document.getElementById('toast'); if(!el) return;
+  el.textContent = msg;
+  el.style.background = ok ? '#111' : '#b00';
+  el.classList.add('show');
+  setTimeout(()=>{ el.classList.remove('show'); }, 1800);
+}
+</script>
+
 <script type="module">
-import { onAuth, getUserDoc } from './js/offline.js';
-onAuth(async (u)=>{
-  const link=document.getElementById('navSuper'); if(!link) return;
-  const you = u ? await getUserDoc(u.id||u) : null;
-  link.style.display = (you && you.role==='super') ? 'inline-flex' : 'none';
-});
+// Promoter inline tabs
+(function(){
+  const map = { assign:'pane_assign', invites:'pane_invites', timesheet:'pane_timesheet' };
+  function setTab(name){
+    const id = map[name]||map.assign;
+    document.querySelectorAll('#promoterTabs .chip').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+    Object.values(map).forEach(pid=>{ const el=document.getElementById(pid); if(el) el.style.display = (pid===id)?'block':'none'; });
+  }
+  const tabs = document.getElementById('promoterTabs');
+  if(tabs){
+    tabs.addEventListener('click', (e)=>{ const b=e.target.closest('button[data-tab]'); if(!b) return; setTab(b.dataset.tab); });
+    setTab('assign');
+  }
+})();
 </script>
+<style>
+#promoterTabs .chip.active { outline: 2px solid rgba(0,0,0,0.12); box-shadow: 0 1px 0 rgba(0,0,0,0.06) inset; }
+</style>
 </body></html>
+
+

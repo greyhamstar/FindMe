@@ -1,0 +1,117 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>FindMe — Update Profile</title><link rel='stylesheet' href='css/style.css'></head><body>
+<header class="hdr">
+  <div class="brand">
+    <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
+    <div class="brand-text">
+      <span class="brand-name">FindMe</span>
+      <span class="brand-tag">Campaign Staffing</span>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <nav class="nav">
+      <a class="chip" href="index.html">Home</a>
+      <a class="chip" href="dashboard.html">Dashboard</a>
+      <a class="chip" href="update_profile.html">Profile</a>
+      <a class="chip" id="navPromoters" href="promoters.html">Promoters</a>
+      <a class="chip" id="navStores" href="stores.html">Stores</a>
+      <a class="chip" id="navPost" href="post_campaign.html">Post Campaign</a>
+      <a class="chip" id="navActive" href="active_campaigns.html">Active Campaigns</a>
+      <a class="chip" id="navSuper" href="super.html">Super</a>
+      <a class="chip" href="signup.html">Create account</a>
+      <button id="logoutBtn" class="btn-ghost">Logout</button>
+    </nav>
+    <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
+  </div>
+</header>
+<script type="module">
+import { onAuth, getUserDoc, signOut } from './js/offline.js';
+document.getElementById('navToggle').addEventListener('click', ()=>document.querySelector('.nav').classList.toggle('open'));
+const lg = document.getElementById('logoutBtn'); if(lg) lg.addEventListener('click', ()=>signOut().then(()=>location.href='login.html'));
+onAuth(async (u)=>{ 
+  const me = u ? await getUserDoc(u.id||u) : null;
+  const isCompany = me && me.role==='company'; const isPromoter = me && me.role==='promoter'; const isSuper = me && me.role==='super';
+  const show = (id, ok)=>{ const el=document.getElementById(id); if(el) el.style.display = ok?'inline-flex':'none'; };
+  show('navPromoters', isCompany); show('navStores', isCompany); show('navPost', isCompany);
+  show('navActive', (isCompany||isPromoter)); show('navSuper', isSuper);
+});
+</script>
+
+<main class="container">
+  <div class="card">
+    <div class="tabs"><div class="tab active" data-tab="personal">Personal</div><div class="tab" data-tab="photo">Photo</div><div class="tab" data-tab="docs">Documents</div><div class="tab" data-tab="bank">Banking</div><div class="tab" data-tab="stores">Assigned Stores</div></div>
+    <h2 style="margin:0">Update profile</h2>
+    <div class="tabpane active" id="tab-personal">
+      <div class="grid grid-3" style="margin-top:10px">
+        <div><label>First name</label><input id="firstName"></div>
+        <div><label>Surname</label><input id="surname"></div>
+        <div><label>Region</label>
+          <select id="region">
+            <option>Eastern Cape</option><option>Free State</option><option>Gauteng</option><option>KwaZulu-Natal</option>
+            <option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option><option>Western Cape</option>
+          </select>
+        </div>
+        <div><label>Ethnicity</label><select id="ethnicity"><option>Black</option><option>White</option><option>Indian</option><option>Coloured</option></select></div>
+        <div><label>Gender</label><select id="gender"><option>Female</option><option>Male</option><option>Other</option></select></div>
+        <div><label>ID/Passport</label><input id="idNumber"></div>
+        <div class="grid" style="grid-template-columns:1fr auto;align-items:end;grid-column:1/-1"><div id="msg" class="small"></div><button id="savePersonal" class="btn">Save personal</button></div>
+      </div>
+    </div>
+    <div class="tabpane" id="tab-photo">
+      <div class="grid grid-3">
+        <div>
+          <label>Formal picture</label><input id="photo" type="file" accept="image/*"><div id="photoPreview" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="tabpane" id="tab-docs">
+      <div class="grid grid-3">
+        <div>
+          <label>Upload CV (PDF/DOC/DOCX)</label>
+          <input id="cvfile" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+          <div id="cvInfo" class="small" style="margin-top:8px"></div>
+          <div style="margin-top:8px"><a id="cvDownload" class="chip" href="#" download style="display:none">Download current CV</a></div>
+        </div>
+      </div>
+    </div>
+    <div class="tabpane" id="tab-bank">
+      <div class="grid grid-3">
+        <div><label>Bank name</label><select id="bankName"><option>ABSA</option><option>Capitec</option><option>FNB</option><option>Nedbank</option><option>Standard Bank</option><option>Investec</option><option>TymeBank</option><option>Discovery Bank</option><option>African Bank</option></select></div>
+        <div><label>Account number</label><input id="accountNumber" inputmode="numeric"></div>
+        <div><label>Account type</label><select id="accountType"><option>Savings</option><option>Cheque</option><option>Current</option></select></div>
+        <div class="grid" style="grid-template-columns:1fr auto;align-items:end;grid-column:1/-1"><div id="msgBank" class="small"></div><button id="saveBank" class="btn">Save banking</button></div>
+      </div>
+    </div>
+    <div class="tabpane" id="tab-stores">
+      <div class="table-wrap">
+        <table class="table" id="myStores"><thead><tr><th>Store</th><th>Region</th><th>Code</th><th>Lat/Lng</th><th>Action</th><th>Timer</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+</main>
+<footer class="ftr">© 2025 FindMe • All rights reserved</footer>
+<script type="module">
+import { onAuth, getUserDoc, listStoresForPromoter, updateUserDoc, updateUserPrivate, uploadFormalPhoto, uploadCv, getActiveShift, startShiftAtStore, endShift, shiftElapsedMs } from './js/offline.js';
+let ME=null; onAuth(async (u)=>{ if(!u){ location.href='login.html'; return; } ME=await getUserDoc(u.id||u); hydrate(); });
+// Tabs
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', ()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.tabpane').forEach(x=>x.classList.remove('active')); t.classList.add('active'); document.getElementById('tab-'+t.getAttribute('data-tab')).classList.add('active'); }));
+function hydrate(){ firstName.value=ME.firstName||''; surname.value=ME.surname||''; region.value=ME.region||region.value; ethnicity.value=ME.ethnicity||ethnicity.value; gender.value=ME.gender||gender.value; idNumber.value=ME.idNumber||''; if(ME.photoFormal) photoPreview.innerHTML='<img src="'+ME.photoFormal+'" style="width:160px;height:160px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">'; const priv=JSON.parse(localStorage.getItem('fm_private_'+ME.id)||'{}'); bankName.value=priv.bankName||bankName.value; accountNumber.value=priv.accountNumber||''; accountType.value=priv.accountType||accountType.value; const cv=JSON.parse(localStorage.getItem('fm_cv_'+ME.id)||'null'); if(cv){ cvInfo.textContent='Uploaded: '+(cv.name||'CV'); cvDownload.style.display='inline-flex'; cvDownload.href=cv.dataUrl; cvDownload.download=cv.name||'cv'; } loadStores(); }
+photo.addEventListener('change', ()=>{ const f=photo.files[0]; if(!f) return; const r=new FileReader(); r.onload=async e=>{ const dataUrl=e.target.result; await uploadFormalPhoto(ME.id,dataUrl); photoPreview.innerHTML='<img src="'+dataUrl+'" style="width:160px;height:160px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">'; }; r.readAsDataURL(f); });
+cvfile?.addEventListener('change', ()=>{ const f=cvfile.files[0]; if(!f) return; if(!/pdf|doc|docx/i.test(f.name)){ alert('Please upload a PDF/DOC/DOCX file.'); return; } const r=new FileReader(); r.onload=async e=>{ await uploadCv(ME.id, f.name, e.target.result); cvInfo.textContent='Uploaded: '+f.name; cvDownload.style.display='inline-flex'; cvDownload.href=e.target.result; cvDownload.download=f.name; }; r.readAsDataURL(f); });
+savePersonal.addEventListener('click', async ()=>{ await updateUserDoc(ME.id, { firstName:firstName.value.trim(), surname:surname.value.trim(), region:region.value, ethnicity:ethnicity.value, gender:gender.value, idNumber:idNumber.value.trim() }); msg.textContent='Saved ✓'; setTimeout(()=>msg.textContent='', 1500); });
+saveBank.addEventListener('click', async ()=>{ await updateUserPrivate(ME.id, { bankName:bankName.value, accountNumber:accountNumber.value.trim(), accountType:accountType.value }); msgBank.textContent='Saved ✓'; setTimeout(()=>msgBank.textContent='', 1500); });
+// Assigned stores + check-in/stop + live timer
+async function loadStores(){ const stores = await listStoresForPromoter(ME.id); const tb=document.querySelector('#myStores tbody'); tb.innerHTML=''; const active = await getActiveShift(ME.id); stores.forEach(s=>{ const actionId='act_'+s.id; const timerId='tm_'+s.id; const isActive=active && active.storeId===s.id; const tr=document.createElement('tr'); tr.innerHTML='<td>'+s.name+'</td><td>'+(s.region||'-')+'</td><td>'+(s.code||'-')+'</td><td>'+(s.lat??'-')+', '+(s.lng??'-')+'</td><td><button class="btn" id="'+actionId+'" data-store="'+s.id+'">'+(isActive?'Stop':'Check in')+'</button></td><td><span class="small" id="'+timerId+'">'+(isActive?'—':'')+'</span></td>'; tb.appendChild(tr); const btn=document.getElementById(actionId); btn.addEventListener('click', async ()=>{ const cur=await getActiveShift(ME.id); if(cur && cur.storeId===s.id){ try{ await endShift({promoterId:ME.id}); }catch(e){ alert(e.message||'Could not end shift'); } loadStores(); } else if(cur){ alert('You already have an active shift at another store. Please stop it first.'); } else { const go=(lat,lng)=>startShiftAtStore({storeId:s.id,promoterId:ME.id,lat,lng,radiusMeters:200}).then(()=>loadStores()).catch(err=>alert(err.message||'Check-in failed')); if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>go(p.coords.latitude,p.coords.longitude), ()=>{ const lat=parseFloat(prompt('Enter LATITUDE:','')); const lng=parseFloat(prompt('Enter LONGITUDE:','')); if(!isNaN(lat)&&!isNaN(lng)) go(lat,lng); }); else { const lat=parseFloat(prompt('Enter LATITUDE:','')); const lng=parseFloat(prompt('Enter LONGITUDE:','')); if(!isNaN(lat)&&!isNaN(lng)) go(lat,lng); } } }); if(isActive){ const tEl=document.getElementById(timerId); const tick=()=>{ const sh=active; const ms = sh?shiftElapsedMs(sh):0; const h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000); tEl.textContent = h+'h '+m+'m '+s+'s'; }; tick(); if(!window._fmTimer) window._fmTimer=setInterval(tick,1000); } }); }
+</script>
+<div id="toast" class="toast"></div>
+
+<script>
+function toast(msg, ok=true){
+  const el = document.getElementById('toast'); if(!el) return;
+  el.textContent = msg;
+  el.style.background = ok ? '#111' : '#b00';
+  el.classList.add('show');
+  setTimeout(()=>{ el.classList.remove('show'); }, 1800);
+}
+</script>
+</body></html>
+
