@@ -1,4 +1,19 @@
 <!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>FindMe — Super Admin</title><link rel='stylesheet' href='css/style.css'></head><body>
+
+<script>
+// Hard gate: promoters cannot access this page
+(function(){
+  try{
+    var s = JSON.parse(localStorage.getItem('fm_session')||'{}');
+    var users = JSON.parse(localStorage.getItem('fm_users')||'[]');
+    var me = users.find(function(u){ return u.id===s.uid; }) || null;
+    if(me && me.role==='promoter'){
+      location.href = 'dashboard.html';
+    }
+  }catch(e){}
+})();
+</script>
+
 <header class="hdr">
   <div class="brand">
     <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
@@ -8,7 +23,7 @@
     </div>
   </div>
   <div class="hdr-right">
-    <nav class="nav">
+    <nav id="mainNav" class="nav"><button id="navToggle" class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">☰</button><div class="nav-items">
       <a class="chip" href="index.html">Home</a>
       <a class="chip" href="dashboard.html">Dashboard</a>
       <a class="chip" href="update_profile.html">Profile</a>
@@ -19,7 +34,24 @@
       <a class="chip" id="navSuper" href="super.html">Super</a>
       <a class="chip" href="signup.html">Create account</a>
       <button id="logoutBtn" class="btn-ghost">Logout</button>
-    </nav>
+    </div></nav>
+
+<script>
+// Role-based nav hide (fast, before modules)
+(function(){
+  try{
+    var s = JSON.parse(localStorage.getItem('fm_session')||'{}');
+    var users = JSON.parse(localStorage.getItem('fm_users')||'[]');
+    var me = users.find(function(u){ return u.id===s.uid; }) || null;
+    if(me && me.role==='promoter'){
+      ['navPromoters','navStores','navPost','navSuper'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.style.display='none';
+      });
+    }
+  }catch(e){}
+})();
+</script>
+
     <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
   </div>
 </header>
@@ -56,13 +88,29 @@ exportBtn.addEventListener('click', ()=>{ const m=(month.value||'').trim(); if(!
 <div id="toast" class="toast"></div>
 
 <script>
-function toast(msg, ok=true){
-  const el = document.getElementById('toast'); if(!el) return;
-  el.textContent = msg;
-  el.style.background = ok ? '#111' : '#b00';
-  el.classList.add('show');
-  setTimeout(()=>{ el.classList.remove('show'); }, 1800);
-}
+function toast(msg, ok=true){ const el=document.getElementById('toast'); if(!el) return; el.textContent=msg; el.style.background=ok?'#111':'#b00'; el.classList.add('show'); setTimeout(()=>{ el.classList.remove('show'); }, 1800); }
+</script>
+
+<script>
+// mobile nav toggle binder
+(function(){ var btn=document.getElementById('navToggle'); var nav=document.getElementById('mainNav')||document.querySelector('.nav'); if(btn && nav && !btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', function(){ var isOpen=nav.classList.toggle('open'); btn.setAttribute('aria-expanded', isOpen?'true':'false'); }); } })();
+</script>
+
+<script>
+// mobile nav toggle binder v2
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = document.getElementById('mainNav');
+  if(btn && nav && !btn.dataset.bnd){
+    btn.dataset.bnd = '1';
+    btn.addEventListener('click', function(){
+      var isOpen = nav.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  }
+})();
 </script>
 </body></html>
+
+
 
