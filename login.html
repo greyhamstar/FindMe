@@ -1,47 +1,67 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sign in</title>
-<link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-<header class="container">
-  <nav id="mainNav" class="nav">
-    <a class="brand" href="index.html">FindMe</a>
-    <button id="navToggle" class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">☰</button>
-    <div class="nav-items">
-      <a class="chip" href="dashboard.html">Dashboard</a>
-      <a class="chip" href="promoters.html" id="navPromoters">Promoters</a>
-      <a class="chip" href="stores.html" id="navStores">Stores</a>
-      <a class="chip" href="post_campaign.html" id="navPost">Post Campaign</a>
-      <a class="chip" href="active_campaigns.html" id="navActive">Active Campaigns</a>
-      <a class="chip" href="super.html" id="navSuper">Super</a>
-      <a class="chip" href="signup.html" id="navCreate">Create account</a>
-      <a class="chip" href="login.html" id="navLogin">Sign in</a>
-      <span id="navUser" class="small"></span>
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>FindMe — Log in</title><link rel='stylesheet' href='css/style.css'></head><body>
+<header class="hdr">
+  <div class="brand">
+    <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
+    <div class="brand-text">
+      <span class="brand-name">FindMe</span>
+      <span class="brand-tag">Campaign Staffing</span>
     </div>
-  </nav>
-</header>
-<main class="container">
-
-<div class="card"><h2>Sign in</h2>
-  <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
-    <label class="field"><span>Email</span><input id="email"></label>
-    <label class="field"><span>Password</span><input id="password" type="password"></label>
-    <button class="btn" id="btnLogin">Sign in</button>
   </div>
-</div>
-<script type="module">
-import { signIn } from './js/offline.js';
-document.getElementById('btnLogin').onclick=()=>{
-  const email=document.getElementById('email').value.trim(); const password=document.getElementById('password').value;
-  try{ signIn({email,password}); toast('Welcome'); location.href='dashboard.html'; }catch(e){ toast(e.message||'Login failed', false); }
-};
+  <div class="hdr-right">
+    <nav id="mainNav" class="nav">
+      <a class="chip" href="signup.html">Create account</a>
+      <button id="logoutBtn" class="btn-ghost">Logout</button>
+    </nav>
+
+<script>
+// Role-based nav hide (fast, before modules)
+(function(){
+  try{
+    var s = JSON.parse(localStorage.getItem('fm_session')||'{}');
+    var users = JSON.parse(localStorage.getItem('fm_users')||'[]');
+    var me = users.find(function(u){ return u.id===s.uid; }) || null;
+    if(me && me.role==='promoter'){
+      ['navPromoters','navStores','navPost','navSuper'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.style.display='none';
+      });
+    }
+  }catch(e){}
+})();
 </script>
 
+    <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
+  </div>
+</header>
+<main class="container auth-wrap">
+  <div class="card">
+    <h2>Log in</h2>
+    <div id="err" class="error" style="display:none"></div>
+    <div class="grid">
+      <div><label>Email</label><input id="email" placeholder="you@example.com"></div>
+      <div><label>Password</label><input id="password" type="password" placeholder="••••••••"></div>
+      <div class="grid" style="grid-template-columns:1fr auto;align-items:end"><div></div><button id="loginBtn" class="btn">Log in</button></div>
+      <div class="small">No account? <a href="signup.html">Sign up</a></div>
+    </div>
+  </div>
 </main>
+<script type="module">
+import { signIn } from './js/offline.js';
+document.getElementById('navToggle').addEventListener('click', ()=>document.querySelector('.nav').classList.toggle('open'));
+document.getElementById('loginBtn').addEventListener('click', async ()=>{ 
+  try{ await signIn(email.value.trim(), password.value.trim()); location.href='dashboard.html'; }
+  catch(err){ const el=document.getElementById('err'); el.style.display='block'; el.textContent = err.message||'Login failed'; }
+});
+</script>
 <div id="toast" class="toast"></div>
-<script>(function(){var nav=document.getElementById('mainNav'),btn=document.getElementById('navToggle');if(!nav||!btn)return;function t(){var o=nav.classList.toggle('open');btn.setAttribute('aria-expanded',o?'true':'false')}function c(){nav.classList.remove('open');btn.setAttribute('aria-expanded','false')}if(!btn.dataset.bnd){btn.dataset.bnd='1';btn.addEventListener('click',t)}var items=nav.querySelector('.nav-items');if(items&&!items.dataset.bnd){items.dataset.bnd='1';items.addEventListener('click',function(e){if(e.target.tagName==='A'||(e.target.closest&&e.target.closest('a'))){c()}})}})();function toast(m,o){o=o!==false;var el=document.getElementById('toast');if(!el)return;el.textContent=m;el.style.background=o?'#111':'#b00';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1600);}</script>
-<script type="module">import { onAuth } from './js/offline.js'; onAuth();</script>
+
+<script>
+function toast(msg, ok=true){ const el=document.getElementById('toast'); if(!el) return; el.textContent=msg; el.style.background=ok?'#111':'#b00'; el.classList.add('show'); setTimeout(()=>{ el.classList.remove('show'); }, 1800); }
+</script>
+
+<script>
+// mobile nav toggle binder
+(function(){ var btn=document.getElementById('navToggle'); var nav=document.getElementById('mainNav')||document.querySelector('.nav'); if(btn && nav && !btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', function(){ var isOpen=nav.classList.toggle('open'); btn.setAttribute('aria-expanded', isOpen?'true':'false'); }); } })();
+</script>
 </body></html>
+
+

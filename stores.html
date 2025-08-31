@@ -1,32 +1,129 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stores</title>
-<link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-<header class="container">
-  <nav id="mainNav" class="nav">
-    <a class="brand" href="index.html">FindMe</a>
-    <button id="navToggle" class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">☰</button>
-    <div class="nav-items">
-      <a class="chip" href="dashboard.html">Dashboard</a>
-      <a class="chip" href="promoters.html" id="navPromoters">Promoters</a>
-      <a class="chip" href="stores.html" id="navStores">Stores</a>
-      <a class="chip" href="post_campaign.html" id="navPost">Post Campaign</a>
-      <a class="chip" href="active_campaigns.html" id="navActive">Active Campaigns</a>
-      <a class="chip" href="super.html" id="navSuper">Super</a>
-      <a class="chip" href="signup.html" id="navCreate">Create account</a>
-      <a class="chip" href="login.html" id="navLogin">Sign in</a>
-      <span id="navUser" class="small"></span>
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>FindMe — Stores</title><link rel='stylesheet' href='css/style.css'></head><body>
+
+<script>
+// Hard gate: promoters cannot access this page
+(function(){
+  try{
+    var s = JSON.parse(localStorage.getItem('fm_session')||'{}');
+    var users = JSON.parse(localStorage.getItem('fm_users')||'[]');
+    var me = users.find(function(u){ return u.id===s.uid; }) || null;
+    if(me && me.role==='promoter'){
+      location.href = 'dashboard.html';
+    }
+  }catch(e){}
+})();
+</script>
+
+<header class="hdr">
+  <div class="brand">
+    <img class="brand-logo" src="assets/logo.png" alt="FindMe logo">
+    <div class="brand-text">
+      <span class="brand-name">FindMe</span>
+      <span class="brand-tag">Campaign Staffing</span>
     </div>
-  </nav>
+  </div>
+  <div class="hdr-right">
+    <nav id="mainNav" class="nav">
+      <a class="chip" href="index.html">Home</a>
+      <a class="chip" href="dashboard.html">Dashboard</a>
+      <a class="chip" href="update_profile.html">Profile</a>
+      <a class="chip" id="navPromoters" href="promoters.html">Promoters</a>
+      <a class="chip" id="navStores" href="stores.html">Stores</a>
+      <a class="chip" id="navPost" href="post_campaign.html">Post Campaign</a>
+      <a class="chip" id="navActive" href="active_campaigns.html">Active Campaigns</a>
+      <a class="chip" id="navSuper" href="super.html">Super</a>
+      <a class="chip" href="signup.html">Create account</a>
+      <button id="logoutBtn" class="btn-ghost">Logout</button>
+    </nav>
+
+<script>
+// Role-based nav hide (fast, before modules)
+(function(){
+  try{
+    var s = JSON.parse(localStorage.getItem('fm_session')||'{}');
+    var users = JSON.parse(localStorage.getItem('fm_users')||'[]');
+    var me = users.find(function(u){ return u.id===s.uid; }) || null;
+    if(me && me.role==='promoter'){
+      ['navPromoters','navStores','navPost','navSuper'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.style.display='none';
+      });
+    }
+  }catch(e){}
+})();
+</script>
+
+    <button class="btn-ghost icon" id="navToggle" aria-label="Menu">☰</button>
+  </div>
 </header>
+<script type="module">
+import { onAuth, getUserDoc, signOut } from './js/offline.js';
+document.getElementById('navToggle').addEventListener('click', ()=>document.querySelector('.nav').classList.toggle('open'));
+const lg = document.getElementById('logoutBtn'); if(lg) lg.addEventListener('click', ()=>signOut().then(()=>location.href='login.html'));
+onAuth(async (u)=>{ 
+  const me = u ? await getUserDoc(u.id||u) : null;
+  const isCompany = me && me.role==='company'; const isPromoter = me && me.role==='promoter'; const isSuper = me && me.role==='super';
+  const show = (id, ok)=>{ const el=document.getElementById(id); if(el) el.style.display = ok?'inline-flex':'none'; };
+  show('navPromoters', isCompany); show('navStores', isCompany); show('navPost', isCompany);
+  show('navActive', (isCompany||isPromoter)); show('navSuper', isSuper);
+});
+</script>
+
 <main class="container">
-<script>(function(){try{var s=JSON.parse(localStorage.getItem('fm_session')||'{}');var u=(JSON.parse(localStorage.getItem('fm_users')||'[]')).find(x=>x.id===s.uid)||null;if(u&&u.role==='promoter'){location.href='dashboard.html';}}catch(e){}})();</script><div class='card'><h2>Stores</h2><p class='small'>Manage stores later; core flows in Dashboard.</p></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h2 style="margin:0">Stores</h2>
+      <button id="toggleCreate" class="btn">➕ Create Store</button>
+    </div>
+
+    <div id="createWrap" class="card" style="margin-top:12px; display:none">
+      <div class="grid grid-3">
+        <div><label>Store Name</label><input id="storeName" placeholder="Shoprite Campus Square"></div>
+        <div><label>Code (optional)</label><input id="storeCode" placeholder="SHP-001"></div>
+        <div><label>Region</label>
+          <select id="storeRegion">
+            <option>Eastern Cape</option><option>Free State</option><option>Gauteng</option><option>KwaZulu-Natal</option>
+            <option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option><option>Western Cape</option>
+          </select>
+        </div>
+        <div style="grid-column:1/-1"><label>Address (optional)</label><input id="storeAddress" placeholder="Full address"></div>
+        <div><label>Latitude</label><input id="storeLat" placeholder="-26.2041" inputmode="decimal"></div>
+        <div><label>Longitude</label><input id="storeLng" placeholder="28.0473" inputmode="decimal"></div>
+        <div class="grid" style="grid-template-columns:1fr auto;align-items:end">
+          <div class="small">Tip: use <a href="https://www.latlong.net/" target="_blank" rel="noopener">latlong.net</a> to fetch coordinates.</div>
+          <button id="addStoreBtn" class="btn">Save Store</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap" style="margin-top:12px">
+      <table class="table" id="storesTable">
+        <thead><tr><th>Name</th><th>Region</th><th>Lat/Lng</th><th>Assigned</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
 </main>
+<footer class="ftr">© 2025 FindMe • All rights reserved</footer>
+
+<script type="module">
+import { onAuth, getUserDoc, listStoresByOwner, addStore, deleteStore, listStoreAssignments } from './js/offline.js';
+let ME=null, STORES=[];
+onAuth(async (u)=>{ if(!u){ location.href='login.html'; return; } ME=await getUserDoc(u.id||u); if(ME.role!=='company'){ location.href='dashboard.html'; return; } await renderStores(); });
+toggleCreate.addEventListener('click', ()=>{ createWrap.style.display = (createWrap.style.display==='none'||!createWrap.style.display)?'block':'none'; });
+addStoreBtn.addEventListener('click', async ()=>{ const p={ ownerId:ME.id, name:storeName.value.trim(), code:storeCode.value.trim(), region:storeRegion.value, address:storeAddress.value.trim(), lat:parseFloat(storeLat.value), lng:parseFloat(storeLng.value) }; if(!p.name||!p.region||isNaN(p.lat)||isNaN(p.lng)) return alert('Please provide name, region, latitude and longitude.'); await addStore(p); storeName.value=storeCode.value=storeAddress.value=storeLat.value=storeLng.value=''; createWrap.style.display='none'; await renderStores(); });
+async function renderStores(){ STORES=await listStoresByOwner(ME.id); const tb=document.querySelector('#storesTable tbody'); tb.innerHTML=''; for(const s of STORES){ const assigned=await listStoreAssignments(s.id); const tr=document.createElement('tr'); tr.innerHTML='<td>'+s.name+'<div class="small">'+(s.code||'')+'</div></td><td>'+ (s.region||'-') +'</td><td>'+ (s.lat??'-')+', '+(s.lng??'-') +'</td><td><span class="badge">'+assigned.length+' assigned</span></td><td><a class="btn" href="store_detail.html?id='+s.id+'">View</a> <button class="btn-danger" data-del="'+s.id+'">Delete</button></td>'; tb.appendChild(tr); } }
+document.querySelector('#storesTable').addEventListener('click', async (e)=>{ const did=e.target.closest('button[data-del]')?.getAttribute('data-del'); if(did){ if(confirm('Delete this store? Assignments and check-ins for it will also be removed.')){ await deleteStore(ME.id, did); await renderStores(); } } });
+</script>
 <div id="toast" class="toast"></div>
-<script>(function(){var nav=document.getElementById('mainNav'),btn=document.getElementById('navToggle');if(!nav||!btn)return;function t(){var o=nav.classList.toggle('open');btn.setAttribute('aria-expanded',o?'true':'false')}function c(){nav.classList.remove('open');btn.setAttribute('aria-expanded','false')}if(!btn.dataset.bnd){btn.dataset.bnd='1';btn.addEventListener('click',t)}var items=nav.querySelector('.nav-items');if(items&&!items.dataset.bnd){items.dataset.bnd='1';items.addEventListener('click',function(e){if(e.target.tagName==='A'||(e.target.closest&&e.target.closest('a'))){c()}})}})();function toast(m,o){o=o!==false;var el=document.getElementById('toast');if(!el)return;el.textContent=m;el.style.background=o?'#111':'#b00';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1600);}</script>
-<script type="module">import { onAuth } from './js/offline.js'; onAuth();</script>
+
+<script>
+function toast(msg, ok=true){ const el=document.getElementById('toast'); if(!el) return; el.textContent=msg; el.style.background=ok?'#111':'#b00'; el.classList.add('show'); setTimeout(()=>{ el.classList.remove('show'); }, 1800); }
+</script>
+
+<script>
+// mobile nav toggle binder
+(function(){ var btn=document.getElementById('navToggle'); var nav=document.getElementById('mainNav')||document.querySelector('.nav'); if(btn && nav && !btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', function(){ var isOpen=nav.classList.toggle('open'); btn.setAttribute('aria-expanded', isOpen?'true':'false'); }); } })();
+</script>
 </body></html>
+
+

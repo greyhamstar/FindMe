@@ -8,7 +8,7 @@
     </div>
   </div>
   <div class="hdr-right">
-    <nav id="mainNav" class="nav"><button id="navToggle" class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">☰</button><div class="nav-items">
+    <nav id="mainNav" class="nav">
       <a class="chip" href="index.html">Home</a>
       <a class="chip" href="dashboard.html">Dashboard</a>
       <a class="chip" href="update_profile.html">Profile</a>
@@ -19,7 +19,7 @@
       <a class="chip" id="navSuper" href="super.html">Super</a>
       <a class="chip" href="signup.html">Create account</a>
       <button id="logoutBtn" class="btn-ghost">Logout</button>
-    </div></nav>
+    </nav>
 
 <script>
 // Role-based nav hide (fast, before modules)
@@ -129,47 +129,6 @@ function toast(msg, ok=true){ const el=document.getElementById('toast'); if(!el)
 // mobile nav toggle binder
 (function(){ var btn=document.getElementById('navToggle'); var nav=document.getElementById('mainNav')||document.querySelector('.nav'); if(btn && nav && !btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', function(){ var isOpen=nav.classList.toggle('open'); btn.setAttribute('aria-expanded', isOpen?'true':'false'); }); } })();
 </script>
-
-<script>
-// mobile nav toggle binder v2
-(function(){
-  var btn = document.getElementById('navToggle');
-  var nav = document.getElementById('mainNav');
-  if(btn && nav && !btn.dataset.bnd){
-    btn.dataset.bnd = '1';
-    btn.addEventListener('click', function(){
-      var isOpen = nav.classList.toggle('open');
-      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    });
-  }
-})();
-</script>
-
-
-
-
-
-
-<script>
-// burger binder: classic clean
-(function(){
-  var nav = document.getElementById('mainNav');
-  var btn = document.getElementById('navToggle');
-  if(!nav || !btn) return;
-  // remove FAB if present from previous build
-  var fab = document.getElementById('navFab'); if(fab && fab.parentNode){ fab.parentNode.removeChild(fab); }
-  function toggle(){ var open = nav.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
-  function close(){ nav.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
-  if(!btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', toggle); }
-  var items = nav.querySelector('.nav-items');
-  if(items && !items.dataset.bnd){ items.dataset.bnd='1'; items.addEventListener('click', function(e){ if(e.target.tagName==='A' || (e.target.closest && e.target.closest('a'))){ close(); } }); }
-  // start closed on small screens
-  try{ if (window.matchMedia && window.matchMedia('(max-width: 800px)').matches){ close(); } }catch(e){}
-})();
-</script>
-
 </body></html>
-
-
 
 
