@@ -118,81 +118,26 @@ function toast(msg, ok=true){ const el=document.getElementById('toast'); if(!el)
 })();
 </script>
 
+
+
+
+
+
 <script>
-// mobile nav toggle binder v3
+// burger binder: classic clean
 (function(){
   var nav = document.getElementById('mainNav');
   var btn = document.getElementById('navToggle');
   if(!nav || !btn) return;
-  if(!btn.dataset.bnd){
-    btn.dataset.bnd = '1';
-    btn.addEventListener('click', function(){
-      var isOpen = nav.classList.toggle('open');
-      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    });
-    var items = nav.querySelector('.nav-items');
-    if(items){
-      items.addEventListener('click', function(e){
-        var target = e.target;
-        if(target.tagName === 'A' || target.closest('a')){
-          nav.classList.remove('open');
-          btn.setAttribute('aria-expanded', 'false');
-        }
-      });
-    }
-    if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches){
-      nav.classList.remove('open');
-      btn.setAttribute('aria-expanded', 'false');
-    }
-  }
-})();
-</script>
-
-<script>
-// burger binder v4 + diagnostics + FAB fallback
-(function(){
-  var nav = document.getElementById('mainNav');
-  var btn = document.getElementById('navToggle');
-  // Insert FAB fallback if missing
-  var fab = document.getElementById('navFab');
-  if(!fab){
-    fab = document.createElement('button');
-    fab.id = 'navFab';
-    fab.className = 'nav-fab';
-    fab.setAttribute('aria-label','Menu');
-    fab.textContent = '☰';
-    document.body.appendChild(fab);
-  }
-  function toggleNav(){
-    if(!nav) return;
-    var isOpen = nav.classList.toggle('open');
-    if(btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    console.debug('[burger] toggle ->', isOpen);
-  }
-  function closeNav(){
-    if(!nav) return;
-    nav.classList.remove('open');
-    if(btn) btn.setAttribute('aria-expanded', 'false');
-  }
-  // Guard against duplicate binding
-  if(btn && !btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', toggleNav); }
-  if(fab && !fab.dataset.bnd){ fab.dataset.bnd='1'; fab.addEventListener('click', toggleNav); }
-  // Close on link tap
-  var items = nav && nav.querySelector('.nav-items');
-  if(items && !items.dataset.bnd){
-    items.dataset.bnd = '1';
-    items.addEventListener('click', function(e){
-      if(e.target.tagName === 'A' || (e.target.closest && e.target.closest('a'))){ closeNav(); }
-    });
-  }
-  // Start closed on small screens
-  try {
-    if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches){
-      closeNav();
-    }
-  } catch(e){}
-  // Diagnostics
-  console.debug('[burger] ready', { hasNav: !!nav, hasBtn: !!btn, hasFab: !!fab });
+  // remove FAB if present from previous build
+  var fab = document.getElementById('navFab'); if(fab && fab.parentNode){ fab.parentNode.removeChild(fab); }
+  function toggle(){ var open = nav.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+  function close(){ nav.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+  if(!btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', toggle); }
+  var items = nav.querySelector('.nav-items');
+  if(items && !items.dataset.bnd){ items.dataset.bnd='1'; items.addEventListener('click', function(e){ if(e.target.tagName==='A' || (e.target.closest && e.target.closest('a'))){ close(); } }); }
+  // start closed on small screens
+  try{ if (window.matchMedia && window.matchMedia('(max-width: 800px)').matches){ close(); } }catch(e){}
 })();
 </script>
 
