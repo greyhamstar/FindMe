@@ -8,7 +8,7 @@
     </div>
   </div>
   <div class="hdr-right">
-    <nav class="nav">
+    <nav id="mainNav" class="nav">
       <a class="chip" href="index.html">Home</a>
       <a class="chip" href="dashboard.html">Dashboard</a>
       <a class="chip" href="update_profile.html">Profile</a>
@@ -24,7 +24,7 @@
   </div>
 </header>
 <script type="module">
-import { onAuth, getUserDoc, signOut , listPromoters, listStoresByOwner, listCampaignsByOwner, linkPromoterToCampaignStore, listCampaignStoreLinksByOwner, unlinkPromoterFromCampaignStore, listShiftsForPromoter, shiftDurationHours, createInvite, listInvitesForPromoter, listInvitesByOwner, respondToInvite, revokeInvite, listCompanies} from './js/offline.js';
+import { onAuth, getUserDoc, signOut , listPromoters, listStoresByOwner, listCampaignsByOwner, linkPromoterToCampaignStore, listCampaignStoreLinksByOwner, unlinkPromoterFromCampaignStore, createInvite, listInvitesForPromoter, listInvitesByOwner, respondToInvite, revokeInvite, listCompanies, listShiftsForPromoter, shiftDurationHours, listQuestionnairesForCampaign, submitResponse} from './js/offline.js';
 document.getElementById('navToggle').addEventListener('click', ()=>document.querySelector('.nav').classList.toggle('open'));
 const lg = document.getElementById('logoutBtn'); if(lg) lg.addEventListener('click', ()=>signOut().then(()=>location.href='login.html'));
 onAuth(async (u)=>{ 
@@ -47,44 +47,53 @@ onAuth(async (u)=>{
     <div class="card" id="linkAssignCard" style="margin-top:14px">
       <h3>Link Assignment (Campaign ↔ Store ↔ Promoter)</h3>
       <div class="grid" style="grid-template-columns:1fr 1fr 1fr auto; gap:8px; align-items:end">
-        <label class="field">
-          <span>Campaign</span>
-          <select id="selCampaign"></select>
-        </label>
-        <label class="field">
-          <span>Store</span>
-          <select id="selStore"></select>
-        </label>
-        <label class="field">
-          <span>Promoter</span>
-          <select id="selPromoter"></select>
-        </label>
+        <label class="field"><span>Campaign</span><select id="selCampaign"></select></label>
+        <label class="field"><span>Store</span><select id="selStore"></select></label>
+        <label class="field"><span>Promoter</span><select id="selPromoter"></select></label>
         <button id="btnLink" class="btn">Link</button>
       </div>
     <div class="card" id="inviteCard" style="margin-top:14px">
       </div><div id="pane_invites"><h3>Invitations</h3>
-    <div class="table-wrap" style="margin-top:6px">
-      <table class="table" id="proInvitesTbl">
-        <thead><tr><th>Campaign</th><th>Store</th><th>From</th><th>Status</th><th></th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
       <div class="grid" style="grid-template-columns:1fr 1fr 1fr auto; gap:8px; align-items:end">
-        <label class="field">
-          <span>Promoter</span>
-          <select id="invPromoter"></select>
-        </label>
-        <label class="field">
-          <span>Campaign (optional)</span>
-          <select id="invCampaign"><option value="">—</option></select>
-        </label>
-        <label class="field">
-          <span>Store (optional)</span>
-          <select id="invStore"><option value="">—</option></select>
-        </label>
+        <label class="field"><span>Promoter</span><select id="invPromoter"></select></label>
+        <label class="field"><span>Campaign (optional)</span><select id="invCampaign"><option value="">—</option></select></label>
+        <label class="field"><span>Store (optional)</span><select id="invStore"><option value="">—</option></select></label>
         <button class="btn" id="btnInvite">Send Invite</button>
       </div>
+    <div class="card" id="qBuilderCard" style="margin-top:14px">
+      <h3>Campaign Questionnaires</h3>
+      <div class="grid" style="grid-template-columns:1fr auto; gap:8px; align-items:end">
+        <label class="field"><span>Campaign</span><select id="qbCampaign"></select></label>
+        <button class="btn" id="qbNew">New Questionnaire</button>
+      </div>
+      <div id="qbEditor" style="display:none; margin-top:10px">
+        <label class="field"><span>Title</span><input id="qbTitle" placeholder="e.g. Launch Survey"></label>
+        <div id="qbQuestions" class="small" style="margin-top:8px"></div>
+        <div class="grid" style="grid-template-columns: 1fr 1fr 1fr 1fr auto; gap:6px; align-items:end; margin-top:8px">
+          <input id="qbLabel" placeholder="Question label">
+          <select id="qbType">
+            <option value="text">Short text</option><option value="longtext">Long text</option>
+            <option value="number">Number</option><option value="yesno">Yes/No</option>
+            <option value="single">Single choice</option><option value="multi">Multiple choice</option>
+            <option value="rating">Rating (1-5)</option>
+          </select>
+          <input id="qbOptions" placeholder="Options (comma-separated)">
+          <label style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="qbReq"><span>Required</span></label>
+          <button class="btn-ghost" id="qbAdd">Add question</button>
+        </div>
+        <div style="margin-top:8px">
+          <button class="btn" id="qbSave">Save & Activate</button>
+          <button class="btn-ghost" id="qbCancel">Cancel</button>
+        </div>
+      </div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table class="table" id="qbList">
+          <thead><tr><th>Title</th><th>Active</th><th>Created</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    
       <div class="table-wrap" style="margin-top:10px">
         <table class="table" id="ownerInvitesTbl">
           <thead><tr><th>Promoter</th><th>Campaign</th><th>Store</th><th>Status</th><th></th></tr></thead>
@@ -92,7 +101,7 @@ onAuth(async (u)=>{
         </table>
       </div>
     </div>
-
+    
       <div id="linkMsg" class="small" style="margin-top:6px; display:none"></div>
       <div class="table-wrap" style="margin-top:12px">
         <table class="table" id="linksTable">
@@ -101,7 +110,7 @@ onAuth(async (u)=>{
         </table>
       </div>
     </div>
-
+    
     <h3 style="margin-top:20px">Applications</h3>
     <div class="table-wrap"><table class="table" id="appsOwner"><thead><tr><th>Campaign</th><th>Promoter</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
 
@@ -139,27 +148,14 @@ onAuth(async (u)=>{
     </div><div id="pane_timesheet"><div class="card" id="timesheetCard" style="margin-top:14px">
       <h3>Timesheet</h3>
       <div class="grid" style="grid-template-columns: repeat(4, minmax(0,1fr)); gap:8px; align-items:end">
-        <label class="field">
-          <span>From</span>
-          <input type="date" id="tsFrom">
-        </label>
-        <label class="field">
-          <span>To</span>
-          <input type="date" id="tsTo">
-        </label>
-        <label class="field">
-          <span>Export</span>
-          <button id="tsExport" class="btn-ghost">Download CSV</button>
-        </label>
+        <label class="field"><span>From</span><input type="date" id="tsFrom"></label>
+        <label class="field"><span>To</span><input type="date" id="tsTo"></label>
+        <label class="field"><span>Export</span><button id="tsExport" class="btn-ghost">Download CSV</button></label>
         <div class="small" id="tsTotals" style="text-align:right; align-self:center"></div>
       </div>
       <div class="table-wrap" style="margin-top:10px">
         <table class="table" id="tsTable">
-          <thead>
-            <tr>
-              <th>Date</th><th>Store</th><th>Campaign</th><th>Start</th><th>End</th><th>Hours</th><th>Pay (est)</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Date</th><th>Store</th><th>Campaign</th><th>Start</th><th>End</th><th>Hours</th><th>Pay (est)</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -180,130 +176,126 @@ async function loadPromoter(){
   assignCountStores.textContent = stores.length;
   const sBody=document.querySelector('#myStores tbody'); sBody.innerHTML='';
   if(stores.length===0){ emptyStores.style.display='block'; } else { emptyStores.style.display='none'; 
-  // --- Timesheet ---
-  async function renderTimesheet(){
-    // fetch shifts
-    const from = (document.getElementById('tsFrom')||{}).value || null;
-    const to   = (document.getElementById('tsTo')||{}).value || null;
-    const shifts = await listShiftsForPromoter(ME.id, {from, to});
-    // join helpers
-    const stores = await listStoresForPromoter(ME.id);
-    const storeById = {}; stores.forEach(s=>storeById[s.id]=s);
-    const links = DB.campStoreLinks ? DB.campStoreLinks() : [];
-    const camps = await listCampaignsForPromoter(ME.id);
-    const campById = {}; camps.forEach(c=>campById[c.id]=c);
-    const linkLookup = {}; 
-    links.forEach(l=>{ if(l.promoterId===ME.id){ (linkLookup[l.storeId] ||= []).push(l.campaignId); } });
-    // render
-    const tbody = document.querySelector('#tsTable tbody'); if(!tbody) return;
-    tbody.innerHTML='';
-    let totalH=0, totalPay=0;
-    shifts.forEach(s=>{
-      const st = new Date(s.startAt||s.start||s.startTime||0);
-      const et = new Date(s.endAt||s.end||s.endTime||0);
-      const hrs = shiftDurationHours(s);
-      totalH += hrs;
-      const store = storeById[s.storeId] || {};
-      // choose a campaign: take first linked for this store (at render time)
-      const campIds = linkLookup[s.storeId] || [];
-      const camp = campIds.length ? (campById[campIds[0]] || {}) : {};
-      const rate = camp.ratePerHour || 0;
-      const pay = Math.round(hrs * rate * 100) / 100;
-      totalPay += pay;
-      const d = st.toISOString().slice(0,10);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${d}</td>
-                      <td>${store.name||'-'}</td>
-                      <td>${camp.title||camp.name||'-'}</td>
-                      <td>${st.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
-                      <td>${et && et.toString()!=='Invalid Date' ? et.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '-'}</td>
-                      <td>${hrs.toFixed(2)}</td>
-                      <td>${pay.toFixed(2)}</td>`;
-      tbody.appendChild(tr);
+  // Surveys per assignment
+  const qByCamp = {};
+  for (const r of rows){
+    const c = r.campaign||{};
+    if(!c || !c.id) continue;
+    const forms = await listQuestionnairesForCampaign(c.id);
+    qByCamp[c.id] = forms.find(f=>f.active) || null;
+  }
+  const tbody2 = document.querySelector('#myAssignmentsTable tbody');
+  Array.from(tbody2.querySelectorAll('tr')).forEach((tr, idx)=>{
+    const camp = (rows[idx]&&rows[idx].campaign)||null;
+    const f = camp ? qByCamp[camp.id] : null;
+    const cell = document.createElement('td');
+    if(f){ cell.innerHTML = `<button class="btn-ghost" data-survey="${f.id}" data-camp="${camp.id}">Fill</button>`; } else { cell.textContent = '-'; }
+    tr.appendChild(cell);
+  });
+  // Modal survey
+  const modal = document.getElementById('surveyModal'); const svForm=document.getElementById('svForm'); const svTitle=document.getElementById('svTitle'); const svCancel=document.getElementById('svCancel');
+  function openModal(){ modal.style.display='flex'; } function closeModal(){ modal.style.display='none'; svForm.innerHTML=''; }
+  tbody2.addEventListener('click', async (e)=>{
+    const qid = e.target && e.target.getAttribute && e.target.getAttribute('data-survey');
+    const campId = e.target && e.target.getAttribute && e.target.getAttribute('data-camp');
+    if(!qid) return;
+    const forms = await listQuestionnairesForCampaign(campId);
+    const form = forms.find(f=>f.id===qid); if(!form){ toast('Form not found', false); return; }
+    svTitle.textContent = form.title || 'Survey';
+    svForm.innerHTML = '';
+    form.questions.forEach(q=>{
+      const wrap = document.createElement('div'); wrap.style.marginBottom='8px';
+      const label = document.createElement('div'); label.innerHTML = `<b>${q.label}</b> ${q.required?'<span class="small" style="color:#b00">(required)</span>':''}`; wrap.appendChild(label);
+      let inputEl=null;
+      if(q.type==='text'){ inputEl=document.createElement('input'); inputEl.type='text'; inputEl.name=q.id; inputEl.className='input'; }
+      else if(q.type==='longtext'){ inputEl=document.createElement('textarea'); inputEl.name=q.id; inputEl.rows=3; inputEl.className='input'; }
+      else if(q.type==='number'){ inputEl=document.createElement('input'); inputEl.type='number'; inputEl.name=q.id; inputEl.className='input'; }
+      else if(q.type==='yesno'){ inputEl=document.createElement('select'); inputEl.name=q.id; inputEl.innerHTML='<option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>'; }
+      else if(q.type==='single'){ inputEl=document.createElement('select'); inputEl.name=q.id; inputEl.innerHTML='<option value="">—</option>'+(q.options||[]).map(o=>`<option value="${o}">${o}</option>`).join(''); }
+      else if(q.type==='multi'){ inputEl=document.createElement('div'); (q.options||[]).forEach(o=>{ const line=document.createElement('label'); line.style.display='inline-flex'; line.style.gap='6px'; line.style.marginRight='10px'; line.style.alignItems='center'; line.innerHTML = `<input type="checkbox" name="${q.id}" value="${o}"><span>${o}</span>`; inputEl.appendChild(line); }); }
+      else if(q.type==='rating'){ inputEl=document.createElement('select'); inputEl.name=q.id; inputEl.innerHTML='<option value="">—</option>'+[1,2,3,4,5].map(n=>`<option value="${n}">${n}</option>`).join(''); }
+      else { inputEl=document.createElement('input'); inputEl.type='text'; inputEl.name=q.id; }
+      wrap.appendChild(inputEl); svForm.appendChild(wrap);
     });
-    const totalEl = document.getElementById('tsTotals');
-    if(totalEl){ totalEl.textContent = `Total: ${totalH.toFixed(2)} hrs — ${totalPay.toFixed(2)}`;
-  // Promoter invites list
+    openModal();
+    svForm.onsubmit = async (ev)=>{
+      ev.preventDefault();
+      try{
+        const answers=[];
+        for(const q of form.questions){
+          let v=null;
+          if(q.type==='multi'){ v=[...svForm.querySelectorAll(`input[name="${q.id}"]:checked`)].map(x=>x.value); }
+          else { const el=svForm.querySelector(`[name="${q.id}"]`); v = el ? el.value : null; }
+          if(q.required){ if((q.type==='multi' && (!v || v.length===0)) || (q.type!=='multi' && (!v || (''+v).trim()===''))){ toast('Please answer required questions', false); return; } }
+          answers.push({ qid:q.id, value:v });
+        }
+        await submitResponse({questionnaireId: form.id, campaignId: campId, promoterId: ME.id, answers});
+        toast('Responses submitted ✓'); closeModal();
+      }catch(err){ toast(err.message||'Submit failed', false); }
+    };
+  });
+  if(svCancel){ svCancel.onclick = closeModal; }
+
+  // Timesheet
+  async function renderTimesheet(){
+    const from=(document.getElementById('tsFrom')||{}).value||null, to=(document.getElementById('tsTo')||{}).value||null;
+    const shifts=await listShiftsForPromoter(ME.id,{from,to});
+    const stores=await listStoresForPromoter(ME.id); const storeById={}; stores.forEach(s=>storeById[s.id]=s);
+    const links=DB.campStoreLinks?DB.campStoreLinks():[]; const camps=await listCampaignsForPromoter(ME.id); const campById={}; camps.forEach(c=>campById[c.id]=c);
+    const linkLookup={}; links.forEach(l=>{ if(l.promoterId===ME.id){ (linkLookup[l.storeId] ||= []).push(l.campaignId); } });
+    const tb=document.querySelector('#tsTable tbody'); if(!tb) return; tb.innerHTML=''; let totalH=0,totalPay=0;
+    shifts.forEach(s=>{ const st=new Date(s.startAt||s.start||s.startTime||0), et=new Date(s.endAt||s.end||s.endTime||0); const hrs=shiftDurationHours(s); totalH+=hrs; const store=storeById[s.storeId]||{}; const campIds=linkLookup[s.storeId]||[]; const camp=campIds.length?(campById[campIds[0]]||{}):{}; const rate=camp.ratePerHour||0; const pay=Math.round(hrs*rate*100)/100; totalPay+=pay; const d=st.toISOString().slice(0,10); const tr=document.createElement('tr'); tr.innerHTML=`<td>${d}</td><td>${store.name||'-'}</td><td>${camp.title||camp.name||'-'}</td><td>${st.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</td><td>${et && et.toString()!=='Invalid Date' ? et.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '-'}</td><td>${hrs.toFixed(2)}</td><td>${pay.toFixed(2)}</td>`; tb.appendChild(tr); });
+    const totalEl=document.getElementById('tsTotals'); if(totalEl){ totalEl.textContent = `Total: ${totalH.toFixed(2)} hrs — ${totalPay.toFixed(2)}`;}
+  }
+  const tsFrom=document.getElementById('tsFrom'), tsTo=document.getElementById('tsTo');
+  if(tsFrom) tsFrom.addEventListener('change', renderTimesheet);
+  if(tsTo) tsTo.addEventListener('change', renderTimesheet);
+  const tsExport=document.getElementById('tsExport');
+  if(tsExport) tsExport.addEventListener('click', async ()=>{
+    const from=(document.getElementById('tsFrom')||{}).value||null, to=(document.getElementById('tsTo')||{}).value||null;
+    const shifts=await listShiftsForPromoter(ME.id,{from,to});
+    const stores=await listStoresForPromoter(ME.id); const storeById={}; stores.forEach(s=>storeById[s.id]=s);
+    const links=DB.campStoreLinks?DB.campStoreLinks():[]; const camps=await listCampaignsForPromoter(ME.id); const campById={}; camps.forEach(c=>campById[c.id]=c);
+    const linkLookup={}; links.forEach(l=>{ if(l.promoterId===ME.id){ (linkLookup[l.storeId] ||= []).push(l.campaignId); } });
+    const rows=[['Date','Store','Campaign','Start','End','Hours','Rate','Pay']];
+    shifts.forEach(s=>{ const st=new Date(s.startAt||s.start||s.startTime||0), et=new Date(s.endAt||s.end||s.endTime||0); const hrs=shiftDurationHours(s); const store=storeById[s.storeId]||{}; const campIds=linkLookup[s.storeId]||[]; const camp=campIds.length?(campById[campIds[0]]||{}):{}; const rate=camp.ratePerHour||0; const pay=Math.round(hrs*rate*100)/100; rows.push([st.toISOString().slice(0,10), store.name||'', camp.title||camp.name||'', st.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), et && et.toString()!=='Invalid Date' ? et.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '', hrs.toFixed(2), rate, pay.toFixed(2)]); });
+    const csv = rows.map(r=>r.map(v=>(''+v).replace(/"/g,'""')).map(v=>`"${v}"`).join(',')).join('\n');
+    const blob=new Blob([csv], {type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='timesheet.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),5000);
+  });
+  await renderTimesheet();
+
+  // Geofence check on start shift
+  const tbody = document.querySelector('#myAssignmentsTable tbody');
+  if(tbody){
+    const old = tbody.onclick;
+    tbody.addEventListener('click', async (e)=>{
+      const startId = e.target && e.target.getAttribute && e.target.getAttribute('data-start');
+      if(startId){
+        const radius = Number((document.getElementById('geoRadius')||{}).value)||150;
+        const allowOverride = !!((document.getElementById('geoOverride')||{}).checked);
+        const store = (await listStoresForPromoter(ME.id)).find(s=>s.id===startId) || {};
+        const sLat = store.lat, sLng = store.lng;
+        const lat = (manual.lat!=null?manual.lat:(loc.lat!=null?loc.lat:null));
+        const lng = (manual.lng!=null?manual.lng:(loc.lng!=null?loc.lng:null));
+        const hav=(a,b,c,d)=>{ if([a,b,c,d].some(v=>v==null)) return Infinity; const R=6371000,toR=x=>x*Math.PI/180; const dLa=toR(c-a), dLo=toR(d-b); const A=Math.sin(dLa/2)**2+Math.cos(toR(a))*Math.cos(toR(c))*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(A)); };
+        const dist = hav(lat,lng,sLat,sLng);
+        if (!(allowOverride || (dist<=radius))) { toast(`Too far from store: ${Math.round(dist)}m (limit ${radius}m)`, false); return; }
+      }
+    }, true);
+  }
+
+  // Promoter invites
   async function renderProInvites(){
     const rows = await listInvitesForPromoter(ME.id);
     const tbody = document.querySelector('#proInvitesTbl tbody'); if(!tbody) return;
-    // preload lookup
-    const camps = await listCampaignsForPromoter(ME.id);
-    const stores = await listStoresForPromoter(ME.id);
-    const owners = await listCompanies();
-    const byId = (arr)=>Object.fromEntries(arr.map(x=>[x.id,x]));
-    const campBy=byId(camps), storeBy=byId(stores), ownerBy=byId(owners);
+    const camps = await listCampaignsForPromoter(ME.id); const stores = await listStoresForPromoter(ME.id); const owners = await listCompanies();
+    const byId = (arr)=>Object.fromEntries(arr.map(x=>[x.id,x])); const campBy=byId(camps), storeBy=byId(stores), ownerBy=byId(owners);
     tbody.innerHTML='';
-    rows.forEach(r=>{
-      const c = campBy[r.campaignId]||{};
-      const s = storeBy[r.storeId]||{};
-      const o = ownerBy[r.ownerId]||{};
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${c.title||c.name||'-'}</td>
-                      <td>${s.name||'-'}</td>
-                      <td>${o.companyName||o.email||'-'}</td>
-                      <td>${r.status}</td>
-                      <td style="text-align:right">${
-                        r.status==='pending' ? `<button class="btn" data-acc="${r.id}">Accept</button> <button class="btn-ghost" data-dec="${r.id}">Decline</button>` : ''
-                      }</td>`;
-      tbody.appendChild(tr);
-    });
+    rows.forEach(r=>{ const c=campBy[r.campaignId]||{}; const s=storeBy[r.storeId]||{}; const o=ownerBy[r.ownerId]||{}; const tr=document.createElement('tr'); tr.innerHTML = `<td>${c.title||c.name||'-'}</td><td>${s.name||'-'}</td><td>${o.companyName||o.email||'-'}</td><td>${r.status}</td><td style="text-align:right">${r.status==='pending'?`<button class="btn" data-acc="${r.id}">Accept</button> <button class="btn-ghost" data-dec="${r.id}">Decline</button>`:''}</td>`; tbody.appendChild(tr); });
   }
   await renderProInvites();
-  const proTbl = document.getElementById('proInvitesTbl');
-  if(proTbl){
-    proTbl.addEventListener('click', async (e)=>{
-      const acc = e.target && e.target.getAttribute && e.target.getAttribute('data-acc');
-      const dec = e.target && e.target.getAttribute && e.target.getAttribute('data-dec');
-      if(!acc && !dec) return;
-      try{
-        await respondToInvite({inviteId:(acc||dec), action: acc?'accept':'decline'});
-        toast(acc?'Invite accepted ✓':'Invite declined');
-        await renderProInvites();
-        if(acc){ await loadPromoter(); } // refresh assignments
-      }catch(err){ toast(err.message||'Failed', false); }
-    });
-  }
-}
-  }
+  const proTbl=document.getElementById('proInvitesTbl'); if(proTbl){ proTbl.addEventListener('click', async (e)=>{ const acc=e.target && e.target.getAttribute && e.target.getAttribute('data-acc'); const dec=e.target && e.target.getAttribute && e.target.getAttribute('data-dec'); if(!acc && !dec) return; try{ await respondToInvite({inviteId:(acc||dec), action: acc?'accept':'decline'}); toast(acc?'Invite accepted ✓':'Invite declined'); await renderProInvites(); if(acc){ await loadPromoter(); } }catch(err){ toast(err.message||'Failed', false); } }); }
 
-  // Wire date filters + export
-  const tsFrom = document.getElementById('tsFrom');
-  const tsTo = document.getElementById('tsTo');
-  if(tsFrom) tsFrom.addEventListener('change', renderTimesheet);
-  if(tsTo) tsTo.addEventListener('change', renderTimesheet);
-  const tsExport = document.getElementById('tsExport');
-  if(tsExport) tsExport.addEventListener('click', async ()=>{
-    const from = (document.getElementById('tsFrom')||{}).value || null;
-    const to   = (document.getElementById('tsTo')||{}).value || null;
-    const shifts = await listShiftsForPromoter(ME.id, {from, to});
-    const stores = await listStoresForPromoter(ME.id);
-    const storeById = {}; stores.forEach(s=>storeById[s.id]=s);
-    const links = DB.campStoreLinks ? DB.campStoreLinks() : [];
-    const camps = await listCampaignsForPromoter(ME.id);
-    const campById = {}; camps.forEach(c=>campById[c.id]=c);
-    const linkLookup = {}; links.forEach(l=>{ if(l.promoterId===ME.id){ (linkLookup[l.storeId] ||= []).push(l.campaignId); } });
-    const rows = [['Date','Store','Campaign','Start','End','Hours','Rate','Pay']];
-    shifts.forEach(s=>{
-      const st = new Date(s.startAt||s.start||s.startTime||0);
-      const et = new Date(s.endAt||s.end||s.endTime||0);
-      const hrs = shiftDurationHours(s);
-      const store = storeById[s.storeId] || {};
-      const campIds = linkLookup[s.storeId] || [];
-      const camp = campIds.length ? (campById[campIds[0]] || {}) : {};
-      const rate = camp.ratePerHour || 0;
-      const pay = Math.round(hrs*rate*100)/100;
-      rows.push([st.toISOString().slice(0,10), store.name||'', camp.title||camp.name||'', st.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), et && et.toString()!=='Invalid Date' ? et.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '', hrs.toFixed(2), rate, pay.toFixed(2)]);
-    });
-    const csv = rows.map(r=>r.map(v=>(''+v).replace(/"/g,'""')).map(v=>`"${v}"`).join(',')).join('\n');
-    const blob = new Blob([csv], {type:'text/csv'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'timesheet.csv'; a.click();
-    setTimeout(()=>URL.revokeObjectURL(url), 5000);
-  });
-
-  await renderTimesheet();
 }
   stores.forEach(s=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+s.name+'<div class="small">'+(s.code||'')+'</div></td><td>'+ (s.region||'-') +'</td><td><span class="small" id="d_'+s.id+'">—</span></td><td><button class="btn" data-checkin="'+s.id+'">Check in</button></td>'; sBody.appendChild(tr); });
   // Distance calc (best-effort)
@@ -326,121 +318,54 @@ async function loadPromoter(){
 }
 async function loadCompany(){ const apps=await listApplicationsForOwner(ME.id); const tb=document.querySelector('#appsOwner tbody'); tb.innerHTML=''; apps.forEach(a=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+ (a.campaign?.title||a.campaignId) +'</td><td>'+ (a.promoter?.firstName||"")+ ' '+(a.promoter?.surname||"") +'</td><td><span class="badge">'+(a.status||'pending')+'</span></td><td><button class="btn" data-acc="'+a.id+'">Accept</button> <button class="btn-ghost" data-rej="'+a.id+'">Reject</button></td>'; tb.appendChild(tr); }); tb.addEventListener('click', async (e)=>{ const a=e.target.closest('button[data-acc]')?.getAttribute('data-acc'); const r=e.target.closest('button[data-rej]')?.getAttribute('data-rej'); if(a){ await updateApplicationStatus(a,'accepted'); await loadCompany(); } if(r){ await updateApplicationStatus(r,'rejected'); await loadCompany(); } });
   const camps = await listCampaignsByOwner(ME.id); const cb = document.querySelector('#myCamps tbody'); if(cb){ cb.innerHTML=''; const today = new Date().toISOString().slice(0,10); function status(c){ const s=c.startDate||''; const e=c.endDate||''; if(e && e < today) return 'Finished'; if(s && s > today) return 'Upcoming'; if(s && (!e || e>=today)) return 'Active'; return 'Active'; } camps.forEach(c=>{ const tr=document.createElement('tr'); tr.innerHTML = '<td>'+ (c.title||'-') +'</td><td>'+ (c.region||'-') +'</td><td>'+ (c.startDate||'-') +'</td><td>'+ (c.endDate||'-') +'</td><td><span class="badge">'+ status(c) +'</span></td><td><a class="btn" href="campaign_detail.html?id='+c.id+'">Open</a></td><td><button class="btn-danger" data-delcamp="'+c.id+'">Delete</button></td>'; cb.appendChild(tr); }); cb.addEventListener('click', async (e)=>{ const id=e.target.closest('button[data-delcamp]')?.getAttribute('data-delcamp'); if(!id) return; if(confirm('Delete this campaign? Applications and invites for it will be removed.')){ await deleteCampaign(ME.id, id); await loadCompany(); } }); 
-  // Populate selects
-  const [camps, stores, promos] = await Promise.all([
-    listCampaignsByOwner(ME.id),
-    listStoresByOwner(ME.id),
-    listPromoters()
-  ]);
-  const by = (arr, formatter, selId)=>{
-    const sel=document.getElementById(selId); if(!sel) return;
-    sel.innerHTML='';
-    arr.forEach(x=>{
-      const opt=document.createElement('option');
-      opt.value=x.id; opt.textContent = formatter(x);
-      sel.appendChild(opt);
-    });
-  };
+  // Populate link selects
+  const [camps, stores, promos] = await Promise.all([listCampaignsByOwner(ME.id), listStoresByOwner(ME.id), listPromoters()]);
+  const by = (arr, f, id)=>{ const el=document.getElementById(id); if(!el) return; el.innerHTML=''; arr.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=f(x); el.appendChild(o); }); };
   by(camps, c=>c.title||c.name||c.id, 'selCampaign');
   by(stores, s=>s.name||s.id, 'selStore');
   by(promos, p=>((p.firstName||'')+' '+(p.surname||'')).trim() || p.email || p.id, 'selPromoter');
-
   // Link button
-  const msg = document.getElementById('linkMsg');
-  const showMsg = (t, ok=true)=>{ if(!msg) return; msg.style.display='block'; msg.textContent=t; msg.style.color = ok ? '#0a0' : '#b00'; setTimeout(()=>msg.style.display='none', 2500); };
-  const btn = document.getElementById('btnLink');
-  if(btn){
-    btn.onclick = async ()=>{
-      try{
-        const campaignId = (document.getElementById('selCampaign')||{}).value;
-        const storeId = (document.getElementById('selStore')||{}).value;
-        const promoterId = (document.getElementById('selPromoter')||{}).value;
-        if(!campaignId||!storeId||!promoterId){ showMsg('Please select a campaign, store and promoter', false); return; 
-  // Invitations: populate selects
-  const promosAll = await listPromoters();
-  const campsAll = await listCampaignsByOwner(ME.id);
-  const storesAll = await listStoresByOwner(ME.id);
-  const setSel = (id, arr, lab)=>(()=>{ const el=document.getElementById(id); if(!el) return; el.innerHTML=''; if(id!=='invPromoter'){ const o=document.createElement('option'); o.value=''; o.textContent='—'; el.appendChild(o);} arr.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=lab(x); el.appendChild(o); }); })();
+  const msg = document.getElementById('linkMsg'); const showMsg=(t,ok=true)=>{ if(!msg) return; msg.style.display='block'; msg.textContent=t; msg.style.color=ok?'#0a0':'#b00'; setTimeout(()=>msg.style.display='none',2500); };
+  const btn=document.getElementById('btnLink'); if(btn){ btn.onclick=async()=>{ const campaignId=(document.getElementById('selCampaign')||{}).value; const storeId=(document.getElementById('selStore')||{}).value; const promoterId=(document.getElementById('selPromoter')||{}).value; if(!campaignId||!storeId||!promoterId){ showMsg('Select campaign, store and promoter', false); return;} await linkPromoterToCampaignStore({campaignId,storeId,promoterId}); showMsg('Linked ✓'); await renderLinks(); }; }
+  async function renderLinks(){ const rows = await listCampaignStoreLinksByOwner(ME.id); const tb=document.querySelector('#linksTable tbody'); if(!tb) return; tb.innerHTML=''; rows.forEach(r=>{ const tr=document.createElement('tr'); const promLabel=r.promoter?((((r.promoter.firstName||'')+' '+(r.promoter.surname||'')).trim())||r.promoter.email||r.promoter.id):'(unknown)'; tr.innerHTML=`<td>${(r.campaign&& (r.campaign.title||r.campaign.name))||'-'}</td><td>${(r.store&& r.store.name)||'-'}</td><td>${promLabel}</td><td style="text-align:right"><button class="btn-ghost" data-del="${r.id}">Unlink</button></td>`; tb.appendChild(tr); }); }
+  await renderLinks();
+  const linksTbl=document.getElementById('linksTable'); if(linksTbl){ linksTbl.addEventListener('click', async (e)=>{ const id=e.target && e.target.getAttribute && e.target.getAttribute('data-del'); if(!id) return; await unlinkPromoterFromCampaignStore(id); await renderLinks(); }); }
+
+  // Invitations
+  const promosAll = promos, campsAll = camps, storesAll = stores;
+  const setSel=(id,arr,lab)=>{ const el=document.getElementById(id); if(!el) return; el.innerHTML=''; if(id!=='invPromoter'){ const o=document.createElement('option'); o.value=''; o.textContent='—'; el.appendChild(o);} arr.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=lab(x); el.appendChild(o);}); };
   setSel('invPromoter', promosAll, p=>((p.firstName||'')+' '+(p.surname||'')).trim()||p.email||p.id);
   setSel('invCampaign', campsAll, c=>c.title||c.name||c.id);
   setSel('invStore', storesAll, s=>s.name||s.id);
-
-  // Send invite
-  const btnInv = document.getElementById('btnInvite');
-  if(btnInv){ btnInv.onclick = async ()=>{
-    const promoterId=(document.getElementById('invPromoter')||{}).value;
-    const campaignId=(document.getElementById('invCampaign')||{}).value||null;
-    const storeId=(document.getElementById('invStore')||{}).value||null;
-    if(!promoterId){ toast('Choose a promoter', false); return; }
-    await createInvite({ownerId:ME.id, promoterId, campaignId, storeId});
-    toast('Invite sent ✓');
-    await renderOwnerInvites();
-  };}
-
-  // List invites (owner view)
-  async function renderOwnerInvites(){
-    const rows = await listInvitesByOwner(ME.id);
-    const tbody = document.querySelector('#ownerInvitesTbl tbody'); if(!tbody) return;
-    tbody.innerHTML='';
-    rows.forEach(r=>{
-      const p = promosAll.find(x=>x.id===r.promoterId)||{};
-      const c = campsAll.find(x=>x.id===r.campaignId)||{};
-      const s = storesAll.find(x=>x.id===r.storeId)||{};
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${(((p.firstName||'')+' '+(p.surname||'')).trim()||p.email||p.id)}</td>
-                      <td>${c.title||c.name||'-'}</td>
-                      <td>${s.name||'-'}</td>
-                      <td>${r.status}</td>
-                      <td style="text-align:right">${r.status==='pending'?`<button class="btn-ghost" data-revoke="${r.id}">Revoke</button>`:''}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
+  const btnInv=document.getElementById('btnInvite'); if(btnInv){ btnInv.onclick = async ()=>{ const promoterId=(document.getElementById('invPromoter')||{}).value; const campaignId=(document.getElementById('invCampaign')||{}).value||null; const storeId=(document.getElementById('invStore')||{}).value||null; if(!promoterId){ toast('Choose a promoter', false); return;} await createInvite({ownerId:ME.id, promoterId, campaignId, storeId}); toast('Invite sent ✓'); await renderOwnerInvites(); }; }
+  async function renderOwnerInvites(){ const rows=await listInvitesByOwner(ME.id); const tb=document.querySelector('#ownerInvitesTbl tbody'); if(!tb) return; tb.innerHTML=''; rows.forEach(r=>{ const p = promosAll.find(x=>x.id===r.promoterId)||{}; const c = campsAll.find(x=>x.id===r.campaignId)||{}; const s = storesAll.find(x=>x.id===r.storeId)||{}; const tr=document.createElement('tr'); tr.innerHTML = `<td>${(((p.firstName||'')+' '+(p.surname||'')).trim()||p.email||p.id)}</td><td>${c.title||c.name||'-'}</td><td>${s.name||'-'}</td><td>${r.status}</td><td style="text-align:right">${r.status==='pending'?`<button class="btn-ghost" data-revoke="${r.id}">Revoke</button>`:''}</td>`; tb.appendChild(tr); }); }
   await renderOwnerInvites();
-  const ownerInv = document.getElementById('ownerInvitesTbl');
-  if(ownerInv){
-    ownerInv.addEventListener('click', async (e)=>{
-      const id = e.target && e.target.getAttribute && e.target.getAttribute('data-revoke');
-      if(!id) return;
-      await revokeInvite(id);
-      toast('Invite revoked', true);
-      await renderOwnerInvites();
-    });
-  }
-}
-        await linkPromoterToCampaignStore({ campaignId, storeId, promoterId });
-        showMsg('Linked ✓');
-        await renderLinks();
-      }catch(e){ showMsg(e.message||'Failed to link', false); }
-    };
-  }
+  const ownerInv=document.getElementById('ownerInvitesTbl'); if(ownerInv){ ownerInv.addEventListener('click', async (e)=>{ const id=e.target && e.target.getAttribute && e.target.getAttribute('data-revoke'); if(!id) return; await revokeInvite(id); toast('Invite revoked'); await renderOwnerInvites(); }); }
 
-  // Render links table
-  async function renderLinks(){
-    const rows = await listCampaignStoreLinksByOwner(ME.id);
-    const tbody = document.querySelector('#linksTable tbody'); if(!tbody) return;
-    tbody.innerHTML='';
-    rows.forEach(r=>{
-      const tr=document.createElement('tr');
-      const promLabel = r.promoter ? (((r.promoter.firstName||'')+' '+(r.promoter.surname||'')).trim() || r.promoter.email || r.promoter.id) : '(unknown)';
-      tr.innerHTML = `<td>${(r.campaign&& (r.campaign.title||r.campaign.name))||'-'}</td>
-                      <td>${(r.store&& r.store.name)||'-'}</td>
-                      <td>${promLabel}</td>
-                      <td style="text-align:right"><button class="btn-ghost" data-del="${r.id}">Unlink</button></td>`;
-      tbody.appendChild(tr);
-    });
-  }
-  await renderLinks();
-  const linksTbl = document.getElementById('linksTable');
-  if(linksTbl){
-    linksTbl.addEventListener('click', async (e)=>{
-      const id = e.target && e.target.getAttribute && e.target.getAttribute('data-del');
-      if(!id) return;
-      await unlinkPromoterFromCampaignStore(id);
-      await renderLinks();
-    });
-  }
+  // Questionnaires
+  const qbCamp = document.getElementById('qbCampaign'), qbNew=document.getElementById('qbNew'), qbEditor=document.getElementById('qbEditor'), qbTitle=document.getElementById('qbTitle'), qbQ=document.getElementById('qbQuestions'), qbAdd=document.getElementById('qbAdd'), qbLabel=document.getElementById('qbLabel'), qbType=document.getElementById('qbType'), qbOptions=document.getElementById('qbOptions'), qbReq=document.getElementById('qbReq'), qbSave=document.getElementById('qbSave'), qbCancel=document.getElementById('qbCancel'), qbList=document.getElementById('qbList'); let qbBuf=[];
+  if(qbCamp){ qbCamp.innerHTML=''; campsAll.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.title||c.name||c.id; qbCamp.appendChild(o); }); }
+  function renderQBuf(){ qbQ.innerHTML=''; qbBuf.forEach((q,i)=>{ const row=document.createElement('div'); row.style.display='grid'; row.style.gridTemplateColumns='1fr auto'; row.style.gap='6px'; row.style.alignItems='center'; row.innerHTML = `<div><b>${i+1}.</b> ${q.label} <span class="small">[${q.type}${q.required?'; req':''}] ${q.options&&q.options.length?(' – '+q.options.join('/')):''}</span></div><button class="btn-ghost" data-del="${i}">Remove</button>`; qbQ.appendChild(row); }); }
+  if(qbNew){ qbNew.onclick = ()=>{ qbEditor.style.display='block'; qbTitle.value=''; qbBuf=[]; renderQBuf(); }; }
+  if(qbCancel){ qbCancel.onclick = ()=>{ qbEditor.style.display='none'; qbBuf=[]; }; }
+  if(qbAdd){ qbAdd.onclick = ()=>{ const label=(qbLabel.value||'').trim(); if(!label){ toast('Enter a label', false); return;} const type=qbType.value; const opts=(qbOptions.value||'').split(',').map(s=>s.trim()).filter(Boolean); qbBuf.push({ label, type, options:(type==='single'||type==='multi')?opts:[], required:!!qbReq.checked }); qbLabel.value=''; qbOptions.value=''; qbReq.checked=false; renderQBuf(); }; }
+  if(qbSave){ qbSave.onclick = async ()=>{ const campaignId=(qbCamp||{}).value; if(!campaignId){ toast('Choose a campaign', false); return;} if(qbBuf.length===0){ toast('Add at least one question', false); return;} const q=await createQuestionnaire({ownerId:ME.id, campaignId, title:qbTitle.value||null, questions:qbBuf, active:true}); toast('Questionnaire saved & activated ✓'); qbEditor.style.display='none'; qbBuf=[]; await renderQList(); }; }
+  async function renderQList(){ const campaignId=(qbCamp||{}).value; if(!campaignId) return; const rows=await listQuestionnairesForCampaign(campaignId); const tb=(qbList && qbList.querySelector('tbody')); if(!tb) return; tb.innerHTML=''; rows.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML = `<td>${r.title||'-'}</td><td>${r.active?'Yes':'No'}</td><td>${new Date(r.createdAt).toLocaleString()}</td><td style="text-align:right"><button class="btn-ghost" data-activate="${r.id}">Activate</button><button class="btn-ghost" data-export="${r.id}">Export CSV</button><button class="btn-ghost" data-delete="${r.id}">Delete</button></td>`; tb.appendChild(tr); }); }
+  await renderQList(); if(qbCamp){ qbCamp.addEventListener('change', renderQList); }
+  if(qbList){ qbList.addEventListener('click', async (e)=>{ const act=e.target && e.target.getAttribute && e.target.getAttribute('data-activate'); const exp=e.target && e.target.getAttribute && e.target.getAttribute('data-export'); const del=e.target && e.target.getAttribute && e.target.getAttribute('data-delete'); if(act){ await setQuestionnaireActive(act, true); toast('Activated ✓'); await renderQList(); return;} if(del){ await deleteQuestionnaire(del); toast('Deleted'); await renderQList(); return;} if(exp){ const forms=await listQuestionnairesForCampaign((qbCamp||{}).value); const form=forms.find(f=>f.id===exp); if(!form){ toast('Form not found', false); return;} const resps=await listResponsesByQuestionnaire(form.id); const promoters=await listPromoters(); const promBy=Object.fromEntries(promoters.map(p=>[p.id,p])); const header=['Promoter','Email','Submitted At', ...form.questions.map(q=>q.label)]; const rows=[header]; resps.forEach(r=>{ const p=promBy[r.promoterId]||{}; const name=(((p.firstName||'')+' '+(p.surname||'')).trim())||p.email||p.id; const email=p.email||''; const ansMap={}; (r.answers||[]).forEach(a=>{ ansMap[a.qid]=a.value;}); const vals=form.questions.map(q=>{ const v=ansMap[q.id]; if(v==null) return ''; return Array.isArray(v)?v.join('; '):(''+v); }); rows.push([name, email, new Date(r.submittedAt).toLocaleString(), ...vals]); }); const csv=rows.map(r=>r.map(v=>(''+v).replace(/"/g,'""')).map(v=>`"${v}"`).join(',')).join('\n'); const blob=new Blob([csv], {type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=(form.title||'questionnaire')+'_responses.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),4000); } }); }
 }
 </script>
+
+<div id="surveyModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:16px; border-radius:12px; width:min(720px, 96vw); max-height:85vh; overflow:auto;">
+    <h3 id="svTitle" style="margin-top:0">Survey</h3>
+    <form id="svForm" class="small"></form>
+    <div style="margin-top:10px; display:flex; gap:8px; justify-content:flex-end">
+      <button class="btn-ghost" type="button" id="svCancel">Cancel</button>
+      <button class="btn" type="submit" id="svSubmit">Submit</button>
+    </div>
+  </div>
+</div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -454,7 +379,6 @@ function toast(msg, ok=true){
 </script>
 
 <script type="module">
-// Promoter inline tabs
 (function(){
   const map = { assign:'pane_assign', invites:'pane_invites', timesheet:'pane_timesheet' };
   function setTab(name){
@@ -462,7 +386,7 @@ function toast(msg, ok=true){
     document.querySelectorAll('#promoterTabs .chip').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
     Object.values(map).forEach(pid=>{ const el=document.getElementById(pid); if(el) el.style.display = (pid===id)?'block':'none'; });
   }
-  const tabs = document.getElementById('promoterTabs');
+  const tabs=document.getElementById('promoterTabs');
   if(tabs){
     tabs.addEventListener('click', (e)=>{ const b=e.target.closest('button[data-tab]'); if(!b) return; setTab(b.dataset.tab); });
     setTab('assign');
@@ -472,6 +396,13 @@ function toast(msg, ok=true){
 <style>
 #promoterTabs .chip.active { outline: 2px solid rgba(0,0,0,0.12); box-shadow: 0 1px 0 rgba(0,0,0,0.06) inset; }
 </style>
+
+<script>
+// mobile nav toggle binder
+(function(){ var btn=document.getElementById('navToggle'); var nav=document.getElementById('mainNav')||document.querySelector('.nav'); if(btn && nav && !btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', function(){ var isOpen=nav.classList.toggle('open'); btn.setAttribute('aria-expanded', isOpen?'true':'false'); }); } })();
+</script>
 </body></html>
+
+
 
 

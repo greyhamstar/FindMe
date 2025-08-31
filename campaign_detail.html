@@ -5,7 +5,7 @@
     <div class="brand-text"><span class="brand-name">FindMe</span><span class="brand-tag">Campaign Staffing</span></div>
   </div>
   <div class="hdr-right">
-    <nav class="nav">
+    <nav id="mainNav" class="nav">
       <a class="chip" href="dashboard.html">Dashboard</a>
       <a class="chip" href="active_campaigns.html">Active Campaigns</a>
       <a class="chip" id="navSuper" href="super.html">Super</a>
@@ -78,13 +78,13 @@ async function renderApps(){ const all=await listApplicationsForOwner(ME.id); co
 <div id="toast" class="toast"></div>
 
 <script>
-function toast(msg, ok=true){
-  const el = document.getElementById('toast'); if(!el) return;
-  el.textContent = msg;
-  el.style.background = ok ? '#111' : '#b00';
-  el.classList.add('show');
-  setTimeout(()=>{ el.classList.remove('show'); }, 1800);
-}
+function toast(msg, ok=true){ const el=document.getElementById('toast'); if(!el) return; el.textContent=msg; el.style.background=ok?'#111':'#b00'; el.classList.add('show'); setTimeout(()=>{ el.classList.remove('show'); }, 1800); }
+</script>
+
+<script>
+// mobile nav toggle binder
+(function(){ var btn=document.getElementById('navToggle'); var nav=document.getElementById('mainNav')||document.querySelector('.nav'); if(btn && nav && !btn.dataset.bnd){ btn.dataset.bnd='1'; btn.addEventListener('click', function(){ var isOpen=nav.classList.toggle('open'); btn.setAttribute('aria-expanded', isOpen?'true':'false'); }); } })();
 </script>
 </body></html>
+
 
