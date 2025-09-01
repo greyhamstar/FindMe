@@ -130,12 +130,13 @@ t
 l
 e
 >
-F
+S
+i
+g
+n
+ 
 i
 n
-d
-M
-e
 <
 /
 t
@@ -1589,7 +1590,19 @@ i
 p
 t
 >
-<div class="card"><h1>Welcome to FindMe</h1><p>Promoter assignment & geofenced check-ins.</p><div><a class="btn" href="login.html">Sign in</a> <a class="btn" href="dashboard.html">Dashboard</a></div></div>
+<div class="card"><h2>Sign in</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
+    <label class="field"><span>Email</span><input id="email"></label>
+    <label class="field"><span>Password</span><input id="password" type="password"></label>
+    <button class="btn" id="btnLogin">Sign in</button>
+  </div>
+</div>
+<script>
+document.getElementById('btnLogin').onclick=function(){
+  const email=document.getElementById('email').value.trim(); const password=document.getElementById('password').value;
+  try{ FM.signIn({email,password}); toast('Welcome'); location.href='dashboard.html'; }catch(e){ toast(e.message||'Login failed', false); }
+};
+</script>
 <
 /
 m

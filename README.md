@@ -1,30 +1,16 @@
-# FindMe — Front-End Starter (v5)
+# FindMe v21.2 (Full Code, Non-module JS)
 
-### New in v5
-- **Mobile burger menu (Promoter)** for fast navigation:
-  - Available campaigns
-  - My applications
-  - Store check‑in (new)
-  - My profile
-- **Store Check‑In with live timer**:
-  - When a promoter is **approved and assigned to a store**, they tap the store name in **My applications** to open **Store check‑in**.
-  - Check **In/Out** and see a live HH:MM:SS timer.
-  - Check‑ins are saved to `localStorage` (`checkins[]`) with start/end and total seconds.
-- **Admin store report (CSV)**:
-  - On `admin-stores.html`, choose a **store + date**, load the **daily check‑ins**, and **Download CSV**.
+**If geolocation or imports failed before, use this build.** It removes ES module imports and adds a Reset.
 
-> ⚠️ Demo only: still using `localStorage` (no auth tokens, no server). Don’t use with real PII. For production we’ll move to Firebase Auth + Firestore + Storage, with Cloud Functions to generate signed CSV exports.
+## Quick start
+1. Unzip.
+2. Start a local server in the folder (e.g. `python -m http.server 5500`).
+3. Open `http://localhost:5500/` (required for geolocation on most browsers).
+4. Sign in with seeds:
+   - Company: `demo@brand.local` / `demo123`
+   - Promoter: `promoter@demo.local` / `demo123`
 
-### Quick test
-1. Open `index.html` with VS Code **Live Server**.
-2. Admin: create campaign(s), go to **Stores** to add stores.
-3. Promoter: sign up → apply.
-4. Admin: approve the promoter and assign a store.
-5. Promoter: **My applications** → tap the store badge → **Check In**, let timer run → **Check Out**.
-6. Admin (Stores): pick **store + date** → **Load** → **Download CSV**.
-
-### File map
-- `promoter.html` + `assets/js/promoter.js` — mobile drawer + check‑in workflow.
-- `admin-stores.html` + `assets/js/admin-stores.js` — stores CRUD + linking + daily report CSV.
-- `admin.html` + `assets/js/admin.js` — campaigns, applications, promoters.
-- `assets/js/storage.js` — DB v5 with `checkins[]`.
+## Tips
+- If data looks weird, click **Reset** in the navbar or add `?reset=1` to the URL to reseed localStorage.
+- Promoter → Dashboard shows **assigned store**; tap name to preview map; **Check in** when within geofence.
+- Burger menu is the classic, stable implementation (no frameworks).
