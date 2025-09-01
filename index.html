@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FindMe — Landing</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>FindMe</div>
+    </div>
+    <nav class="row" style="gap:8px">
+      <a class="link" href="./promoter.html">Promoter</a>
+      <a class="link" href="./admin.html">Admin</a>
+      <a class="link" href="./admin-stores.html">Stores</a>
+    </nav>
+  </header>
+  <main class="container">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>Promoters</h2>
+        <p>Mobile-friendly with a burger menu. Apply to campaigns, manage your profile, and check into your assigned store with a live timer.</p>
+        <a href="./promoter.html"><button>Enter Promoter Portal</button></a>
+      </div>
+      <div class="card">
+        <h2>Admins</h2>
+        <p>Create campaigns, approve promoters, assign stores, and download a daily store check‑in report (CSV) from the Stores page.</p>
+        <a href="./admin.html"><button class="secondary">Enter Admin Portal</button></a>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2>Notes</h2>
+      <ul>
+        <li>Prototype uses <strong>localStorage</strong>. Do not enter real ID/banking info.</li>
+        <li>Promoter pay remains hidden in promoter UI.</li>
+      </ul>
+    </div>
+  </main>
+  <footer>© <span id="y"></span> FindMe — prototype</footer>
+  <script type="module">document.getElementById('y').textContent = new Date().getFullYear();</script>
+</body>
+</html>

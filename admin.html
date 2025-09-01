@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FindMe — Admin</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>FindMe</div>
+    </div>
+    <nav class="row" style="gap:8px">
+      <a class="link" href="./index.html">Home</a>
+      <a class="link" href="./admin-stores.html">Stores</a>
+      <a class="link" href="./promoter.html">Promoter</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Login -->
+    <section id="admin-login" class="card">
+      <h2>Admin sign in</h2>
+      <form id="admin-login-form" class="grid">
+        <div class="row">
+          <div>
+            <label for="adm-email">Email</label>
+            <input id="adm-email" type="email" placeholder="admin@findme.dev" value="admin@findme.dev" required />
+          </div>
+          <div>
+            <label for="adm-pass">Password</label>
+            <input id="adm-pass" type="password" placeholder="admin123" value="admin123" required />
+          </div>
+        </div>
+        <div><button type="submit">Sign in</button></div>
+      </form>
+      <p class="small muted">Default admin is pre-seeded for you.</p>
+    </section>
+
+    <!-- App -->
+    <section id="admin-app" class="hidden">
+      <div class="row" style="justify-content:space-between; align-items:center; margin-bottom:8px">
+        <h2 style="margin:0">Dashboard — <span id="admin-name"></span></h2>
+        <button id="logout-btn" class="secondary">Log out</button>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <h2>Create campaign</h2>
+          <form id="create-campaign-form">
+            <label for="c-title">Title</label>
+            <input id="c-title" placeholder="e.g., Stadium Activation" required />
+            <div class="row">
+              <div><label for="c-brand">Brand</label><input id="c-brand" placeholder="e.g., Heineken" required /></div>
+              <div><label for="c-location">Location</label><input id="c-location" placeholder="e.g., Durban" required /></div>
+            </div>
+            <div class="row">
+              <div><label for="c-date">Date</label><input id="c-date" type="date" required /></div>
+              <div><label for="c-pay">Pay (ZAR)</label><input id="c-pay" type="number" min="0" step="1" required /></div>
+              <div><label for="c-slots">Slots</label><input id="c-slots" type="number" min="1" step="1" required /></div>
+            </div>
+            <div style="margin-top:10px"><button type="submit">Create</button></div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Campaigns</h2>
+          <table class="table">
+            <thead><tr><th>Campaign</th><th>Location/Date</th><th>Pay</th><th>Filled</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="camp-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Promoters</h2>
+        <table class="table">
+          <thead><tr><th>Name</th><th>Phone</th><th>KYC</th><th>Actions</th></tr></thead>
+          <tbody id="promoters-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Applications Modal -->
+  <section id="apps-modal" class="hidden modal-overlay">
+    <div class="card modal">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <h2 style="margin:0">Applications — <span id="apps-title"></span></h2>
+        <button id="apps-close" class="secondary">Close</button>
+      </div>
+      <table class="table">
+        <thead><tr><th>Promoter</th><th>Status</th><th>Actions / Store</th></tr></thead>
+        <tbody id="apps-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- User Profile Modal -->
+  <section id="user-modal" class="hidden modal-overlay">
+    <div class="card modal">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <div>
+          <h2 style="margin:0">Promoter — <span id="user-title"></span></h2>
+          <div id="user-meta" class="small muted"></div>
+        </div>
+        <button id="user-close" class="secondary">Close</button>
+      </div>
+      <div id="user-body" style="margin-top:8px"></div>
+      <div class="row" style="margin-top:12px; justify-content:flex-end">
+        <button id="verify-btn" class="warning" data-user="">Mark Verified</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>© <span id="y"></span> FindMe — admin</footer>
+
+  <script type="module" src="./assets/js/storage.js"></script>
+  <script type="module" src="./assets/js/constants.js"></script>
+  <script type="module" src="./assets/js/ui.js"></script>
+  <script type="module" src="./assets/js/auth.js"></script>
+  <script type="module" src="./assets/js/admin.js"></script>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+</body>
+</html>

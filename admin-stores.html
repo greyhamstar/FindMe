@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FindMe — Stores (Admin)</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>FindMe</div>
+    </div>
+    <nav class="row" style="gap:8px">
+      <a class="link" href="./index.html">Home</a>
+      <a class="link" href="./admin.html">Admin</a>
+      <a class="link" href="./promoter.html">Promoter</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Login -->
+    <section id="stores-login" class="card">
+      <h2>Admin sign in</h2>
+      <form id="stores-login-form" class="grid">
+        <div class="row">
+          <div>
+            <label for="adm-email">Email</label>
+            <input id="adm-email" type="email" placeholder="admin@findme.dev" value="admin@findme.dev" required />
+          </div>
+          <div>
+            <label for="adm-pass">Password</label>
+            <input id="adm-pass" type="password" placeholder="admin123" value="admin123" required />
+          </div>
+        </div>
+        <div><button type="submit">Sign in</button></div>
+      </form>
+      <p class="small muted">Default admin is pre-seeded for you.</p>
+    </section>
+
+    <!-- App -->
+    <section id="stores-app" class="hidden">
+      <div class="row" style="justify-content:space-between; align-items:center; margin-bottom:8px">
+        <h2 style="margin:0">Stores — <span id="admin-name"></span></h2>
+        <a href="./admin.html"><button class="secondary">Back to Admin</button></a>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <h2>Add store</h2>
+          <form id="create-store-form">
+            <div class="row"><div><label for="s-name">Store name</label><input id="s-name" placeholder="e.g., Sandton City" required /></div><div><label for="s-province">Province</label><select id="s-province" required></select></div></div>
+            <div class="row"><div><label for="s-city">City</label><input id="s-city" placeholder="e.g., Johannesburg" required /></div><div><label for="s-address">Address</label><input id="s-address" placeholder="Street address" required /></div></div>
+            <div style="margin-top:10px"><button type="submit">Add store</button></div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Stores Directory</h2>
+          <table class="table">
+            <thead><tr><th>Store</th><th>City</th><th>Province</th></tr></thead>
+            <tbody id="stores-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Link approved promoters to stores</h2>
+        <div class="row"><div><label for="lk-campaign">Campaign</label><select id="lk-campaign"></select></div></div>
+        <table class="table" style="margin-top:8px">
+          <thead><tr><th>Promoter</th><th>Assign store</th></tr></thead>
+          <tbody id="link-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="section-title">
+          <h2 id="rep-title">Daily check-ins report</h2>
+          <div class="row" style="gap:8px; align-items:end">
+            <div><label for="rep-store">Store</label><select id="rep-store"></select></div>
+            <div><label for="rep-date">Date</label><input id="rep-date" type="date" /></div>
+            <div><button id="load-report">Load</button></div>
+            <div><button id="download-btn" class="secondary">Download CSV</button></div>
+          </div>
+        </div>
+        <table class="table" style="margin-top:8px">
+          <thead><tr><th>Promoter</th><th>Campaign</th><th>Start</th><th>End</th><th>Duration</th></tr></thead>
+          <tbody id="rep-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>© <span id="y"></span> FindMe — stores</footer>
+
+  <script type="module" src="./assets/js/storage.js"></script>
+  <script type="module" src="./assets/js/constants.js"></script>
+  <script type="module" src="./assets/js/ui.js"></script>
+  <script type="module" src="./assets/js/auth.js"></script>
+  <script type="module" src="./assets/js/admin-stores.js"></script>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+</body>
+</html>
