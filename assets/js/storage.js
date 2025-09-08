@@ -1,0 +1,46 @@
+
+const DB_KEY="FINDME_DB_V8";
+const old=["FINDME_DB_V7","FINDME_DB_V6","FINDME_DB_V5","FINDME_DB_V4","FINDME_DB_V3","FINDME_DB_V2","FINDME_DB_V1"];
+function seed(){
+  if(localStorage.getItem(DB_KEY)) return;
+  for(const k of old){
+    const raw=localStorage.getItem(k); if(!raw) continue;
+    try{
+      const db=JSON.parse(raw);
+      (db.stores||[]).forEach(s=>{ if(typeof s.geofenceEnabled==="undefined") s.geofenceEnabled=false; if(typeof s.radius==="undefined") s.radius=250; });
+      localStorage.setItem(DB_KEY, JSON.stringify(db));
+      return;
+    }catch{}
+  }
+  const now=new Date().toISOString();
+  const db={
+    admins:[{id:"adm-1",email:"admin@findme.dev",password:"admin123",name:"FindMe Admin",createdAt:now}],
+    users:[],
+    campaigns:[{id:"cmp-1",title:"Beverage Launch",brand:"Heineken",location:"Cape Town",date:"2025-09-10",pay:800,slots:4,status:"open",createdAt:now}],
+    stores:[{id:"str-1",name:"Canal Walk",province:"Western Cape",city:"Cape Town",address:"Century Blvd",lat:-33.8899,lng:18.5110,radius:250,geofenceEnabled:false}],
+    applications:[],checkins:[],forms:[],formResponses:[],sessions:{}
+  };
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+function getDB(){
+  seed();
+  let db; try{ db=JSON.parse(localStorage.getItem(DB_KEY))||{} }catch{ db={} }
+  db.users=db.users||[]; db.stores=db.stores||[];
+  db.applications=(db.applications||[]).map(a=>({...a,storeId:a.storeId||""}));
+  db.checkins=db.checkins||[]; db.forms=db.forms||[]; db.formResponses=db.formResponses||[]; db.sessions=db.sessions||{};
+  db.stores.forEach(s=>{ if(typeof s.geofenceEnabled==="undefined") s.geofenceEnabled=false; if(typeof s.radius==="undefined") s.radius=250; });
+  db.users.forEach(shape); return db;
+}
+function setDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function uid(p="id"){ return `${p}-${Math.random().toString(36).slice(2,8)}-${Date.now().toString(36)}`; }
+function shape(u){
+  u.role=u.role||"promoter"; u.phone=u.phone||""; u.profile=u.profile||{};
+  u.profile.idNumber=u.profile.idNumber||"";
+  u.profile.address=u.profile.address||{line1:"",line2:"",city:"",postalCode:"",country:"South Africa",province:""};
+  if(!u.profile.address.country) u.profile.address.country="South Africa";
+  u.profile.banking=u.profile.banking||{accountHolder:"",bankName:"",accountNumber:"",iban:"",branchCode:"",accountType:""};
+  u.profile.contact=u.profile.contact||{altPhone:"",emergencyName:"",emergencyPhone:""};
+  u.profile.documents=u.profile.documents||{cv:null};
+  if(typeof u.kycVerified==="undefined") u.kycVerified=false;
+}
+export { getDB, setDB, uid, shape as ensureUserProfileShape, DB_KEY };

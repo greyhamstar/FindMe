@@ -1,0 +1,109 @@
+
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FindMe — Stores & Reports (Admin)</title><link rel="stylesheet" href="./assets/css/styles.css"/></head>
+<body>
+<header class="header">
+  <div class="brand"><div class="logo"></div><div>FindMe</div></div>
+  <nav class="row" style="gap:8px">
+    <a class="link" href="./index.html">Home</a>
+    <a id="nav-stores" class="link" href="./admin-stores.html" style="display:none">Stores</a>
+    <a class="link" href="./admin.html">Admin</a>
+    <a class="link" href="./promoter.html">Promoter</a>
+  </nav>
+</header>
+
+<main class="container">
+  <section id="stores-login" class="card">
+    <h2>Admin sign in</h2>
+    <form id="stores-login-form" class="grid">
+      <div class="row"><div><label>Email</label><input id="adm-email" type="email" value="admin@findme.dev" required /></div><div><label>Password</label><input id="adm-pass" type="password" value="admin123" required /></div></div>
+      <div><button type="submit">Sign in</button></div>
+    </form>
+    <p class="small muted">Default admin is pre-seeded.</p>
+  </section>
+
+  <section id="stores-app" class="hidden">
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h2 style="margin:0">Stores & Reports — <span id="admin-name"></span></h2>
+      <a href="./admin.html"><button class="secondary">Back to Admin</button></a>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>Add store</h2>
+        <form id="create-store-form">
+          <div class="row">
+            <div><label>Store name</label><input id="s-name" required /></div>
+            <div><label>Province</label><select id="s-province" required></select></div>
+          </div>
+          <div class="row">
+            <div><label>City</label><input id="s-city" required /></div>
+            <div><label>Address</label><input id="s-address" required /></div>
+          </div>
+          <div class="row">
+            <div><label>Latitude (optional)</label><input id="s-lat" type="number" step="any" placeholder="-33.9249" /></div>
+            <div><label>Longitude (optional)</label><input id="s-lng" type="number" step="any" placeholder="18.4241" /></div>
+            <div><label>Radius (m)</label><input id="s-radius" type="number" min="50" step="10" value="250" /></div>
+          </div>
+          <label><input id="s-enable" type="checkbox" /> Enable geofence for this store</label>
+          <div style="margin-top:10px"><button type="submit">Add store</button></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Stores Directory</h2>
+        <table class="table">
+          <thead><tr><th>Store</th><th>City</th><th>Province</th><th>Geo</th><th>Actions</th></tr></thead>
+          <tbody id="stores-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="section-title"><h2 id="rep-title">Hours Report</h2></div>
+      <div class="row" style="gap:8px;align-items:end">
+        <div><label>Campaign</label><select id="rep-campaign"></select></div>
+        <div><label>Store</label><select id="rep-store"></select></div>
+        <div><label>From</label><input id="rep-from" type="date" /></div>
+        <div><label>To</label><input id="rep-to" type="date" /></div>
+        <div><button id="load-report">Load</button></div>
+        <div><button id="download-btn" class="secondary">Download CSV</button></div>
+      </div>
+      <table class="table" style="margin-top:8px">
+        <thead><tr><th>Promoter</th><th>Total Seconds</th><th>Total Hours</th></tr></thead>
+        <tbody id="rep-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<section id="edit-modal" class="hidden modal-overlay">
+  <div class="card modal">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2 style="margin:0">Edit store</h2>
+      <button id="ed-close" class="secondary">Close</button>
+    </div>
+    <form id="edit-form" style="margin-top:8px">
+      <div class="row"><div><label>Name</label><input id="ed-name"/></div><div><label>Province</label><input id="ed-province"/></div></div>
+      <div class="row"><div><label>City</label><input id="ed-city"/></div><div><label>Address</label><input id="ed-address"/></div></div>
+      <div class="row"><div><label>Latitude</label><input id="ed-lat" type="number" step="any"/></div><div><label>Longitude</label><input id="ed-lng" type="number" step="any"/></div><div><label>Radius (m)</label><input id="ed-radius" type="number" min="50" step="10" value="250"/></div></div>
+      <label><input id="ed-enable" type="checkbox"/> Enable geofence</label>
+    </form>
+    <div class="row" style="margin-top:10px;justify-content:flex-end">
+      <button id="ed-usegps" class="warning">Use my current location</button>
+      <button id="ed-cleargeo" class="secondary">Clear geo</button>
+      <button id="ed-save">Save</button>
+    </div>
+  </div>
+</section>
+
+<footer>© <span id="y"></span> FindMe — stores</footer>
+<script type="module" src="./assets/js/storage.js"></script>
+<script type="module" src="./assets/js/constants.js"></script>
+<script type="module" src="./assets/js/ui.js"></script>
+<script type="module" src="./assets/js/auth.js"></script>
+<script type="module" src="./assets/js/admin-stores.js"></script>
+<script type="module">import { showStoresLinkIfAdmin } from './assets/js/ui.js'; document.getElementById('y').textContent=new Date().getFullYear(); showStoresLinkIfAdmin();</script>
+</body></html>
